@@ -9,6 +9,8 @@ If you take advantage of this code for any academic purpose, please do cite:
 
 [1] M. S. Ryoo, B. Rothrock, and L. Matthies, "Pooled Motion Features for First-Person Videos", IEEE Conference on Computer Vision and Pattern Recognition (CVPR), June 2015.
 
+http://arxiv.org/pdf/1412.6505v2.pdf
+
 @inproceedings{ryoo2015pot,
  title={Pooled Motion Features for First-Person Videos},
  author={M. S. Ryoo and B. Rothrock and L. Matthies},
@@ -16,4 +18,4 @@ If you take advantage of this code for any academic purpose, please do cite:
  year={2015},
  month={June},
  address={Boston, MA},
-} 
+}
