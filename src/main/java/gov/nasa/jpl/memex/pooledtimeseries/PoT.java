@@ -1,4 +1,21 @@
-package pooled_time_series;
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package gov.nasa.jpl.memex.pooledtimeseries;
 
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -342,33 +359,6 @@ public class PoT {
 			System.err.println(x);
 		}
 	}
-	
-	/*public static double[][] concatenateTimeSeries(ArrayList<double[][]> multi_series)
-	{
-		int dim = 0;
-		for(int i=0;i<multi_series.size();i++) dim += multi_series.get(i)[0].length;
-		
-		double[][] series = new double[multi_series.get(0).length][dim];
-		
-		for(int t=0;t<series.length;t++) {
-			int index = 0;
-			for(int i=0;i<multi_series.size();i++) {
-				System.arraycopy(multi_series.get(i)[t], 0, series[t], index, multi_series.get(i)[t].length);
-				index += multi_series.get(i)[t].length;
-			}
-		}
-		
-		return series;
-	}
-	
-	public static int[] dimsTimeSeries(ArrayList<double[][]> multi_series)
-	{
-		int[] dims = new int[multi_series.size()];
-		
-		for(int i=0;i<multi_series.size();i++) dims[i] = multi_series.get(i)[0].length;
-		
-		return dims;
-	}*/
 	
 	public static double[][] loadTimeSeries(Path filename)
 	{
