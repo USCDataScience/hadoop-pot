@@ -19,6 +19,7 @@ package gov.nasa.jpl.memex.pooledtimeseries;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,9 +29,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Logger;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint2f;
@@ -45,6 +57,7 @@ import org.opencv.video.Video;
  * Pooled Time Series Similarity Metric.
  * 
  */
+@SuppressWarnings({ "static-access", "deprecation" })
 public class PoT {
 
   public static int frame_width = 320;
@@ -54,12 +67,82 @@ public class PoT {
 
   public static void main(String[] args) {
     System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+    Option dirOpt = OptionBuilder.withArgName("directory").hasArg()
+        .withLongOpt("dir")
+        .withDescription("A directory with image files in it").create('d');
 
-    Path list_file = Paths.get("memex-index_temp.txt");
-    ArrayList<Path> filenames = loadFiles(list_file);
+    Option helpOpt = OptionBuilder.withLongOpt("help")
+        .withDescription("Print this message.").create('h');
 
-    evaluateSimilarity(filenames, 0);
-    LOG.info("done.");
+    Option pathFileOpt = OptionBuilder
+        .withArgName("path file")
+        .hasArg()
+        .withLongOpt("pathfile")
+        .withDescription(
+            "A file containing full absolute paths to videos. Previous default was memex-index_temp.txt")
+        .create('p');
+
+    Options options = new Options();
+    options.addOption(dirOpt);
+    options.addOption(pathFileOpt);
+    options.addOption(helpOpt);
+
+    // create the parser
+    CommandLineParser parser = new DefaultParser();
+
+    try {
+      // parse the command line arguments
+      CommandLine line = parser.parse(options, args);
+      String directoryPath = null;
+      String pathFile = null;
+      ArrayList<Path> videoFiles = null;
+
+      if (line.hasOption("dir")) {
+        directoryPath = line.getOptionValue("dir");
+      }
+
+      if (line.hasOption("pathfile")) {
+        pathFile = line.getOptionValue("pathfile");
+      }
+
+      if (line.hasOption("help")
+          || (line.getOptions() == null || (line.getOptions() != null && line
+              .getOptions().length == 0))
+          || (directoryPath != null && pathFile != null
+              && !directoryPath.equals("") && !pathFile.equals(""))) {
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.printHelp("pooled_time_series", options);
+        System.exit(1);
+      }
+
+      if (directoryPath != null) {
+        File dir = new File(directoryPath);
+        List<File> files = (List<File>) FileUtils.listFiles(dir,
+            TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
+        videoFiles = new ArrayList<Path>(files.size());
+        for (File file : files) {
+          videoFiles.add(file.toPath());
+        }
+        LOG.info("Added " + videoFiles.size() + " video files from "
+            + directoryPath);
+
+      }
+
+      if (pathFile != null) {
+        Path list_file = Paths.get(pathFile);
+        videoFiles = loadFiles(list_file);
+        LOG.info("Loaded " + videoFiles.size() + " video files from "
+            + pathFile);
+      }
+
+      evaluateSimilarity(videoFiles, 0);
+      LOG.info("done.");
+
+    } catch (ParseException exp) {
+      // oops, something went wrong
+      System.err.println("Parsing failed.  Reason: " + exp.getMessage());
+    }
+
   }
 
   public static void evaluateSimilarity(ArrayList<Path> files, int save_mode) {
