@@ -63,6 +63,8 @@ public class PoT {
   public static int frame_width = 320;
   public static int frame_height = 240;
 
+  private static String outputFile = "similarity.txt";
+
   private static final Logger LOG = Logger.getLogger(PoT.class.getName());
 
   public static void main(String[] args) {
@@ -82,10 +84,18 @@ public class PoT {
             "A file containing full absolute paths to videos. Previous default was memex-index_temp.txt")
         .create('p');
 
+    Option outputFileOpt = OptionBuilder
+        .withArgName("output file")
+        .withLongOpt("outputfile")
+        .hasArg()
+        .withDescription("File containing similarity results. Defaults to ./similarity.txt")
+        .create('o');
+
     Options options = new Options();
     options.addOption(dirOpt);
     options.addOption(pathFileOpt);
     options.addOption(helpOpt);
+    options.addOption(outputFileOpt);
 
     // create the parser
     CommandLineParser parser = new DefaultParser();
@@ -103,6 +113,10 @@ public class PoT {
 
       if (line.hasOption("pathfile")) {
         pathFile = line.getOptionValue("pathfile");
+      }
+
+      if (line.hasOption("outputfile")) {
+          outputFile = line.getOptionValue("outputfile");
       }
 
       if (line.hasOption("help")
@@ -216,7 +230,7 @@ public class PoT {
       System.out.format("%f ", mean_dists[i]);
     System.out.println("");
 
-    try (FileOutputStream fos = new FileOutputStream("similarity.txt");
+    try (FileOutputStream fos = new FileOutputStream(outputFile);
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(fos));) {
       for (int i = 0; i < fv_list.size(); i++) {
         System.out.format("%d ", i);
