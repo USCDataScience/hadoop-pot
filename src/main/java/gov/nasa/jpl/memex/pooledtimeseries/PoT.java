@@ -19,6 +19,7 @@ package gov.nasa.jpl.memex.pooledtimeseries;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -43,6 +44,8 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint2f;
@@ -63,6 +66,11 @@ public class PoT {
   public static int frame_width = 320;
   public static int frame_height = 240;
 
+  private static String outputFile = "similarity.txt";
+
+  private static enum OUTPUT_FORMATS {TXT, JSON}
+  private static OUTPUT_FORMATS outputFormat = OUTPUT_FORMATS.TXT;
+
   private static final Logger LOG = Logger.getLogger(PoT.class.getName());
 
   public static void main(String[] args) {
@@ -82,10 +90,25 @@ public class PoT {
             "A file containing full absolute paths to videos. Previous default was memex-index_temp.txt")
         .create('p');
 
+    Option outputFileOpt = OptionBuilder
+        .withArgName("output file")
+        .withLongOpt("outputfile")
+        .hasArg()
+        .withDescription("File containing similarity results. Defaults to ./similarity.txt")
+        .create('o');
+
+    Option jsonOutputFlag = OptionBuilder
+        .withArgName("json output")
+        .withLongOpt("json")
+        .withDescription("Set similarity output format to JSON. Defaults to .txt")
+        .create('j');
+
     Options options = new Options();
     options.addOption(dirOpt);
     options.addOption(pathFileOpt);
     options.addOption(helpOpt);
+    options.addOption(outputFileOpt);
+    options.addOption(jsonOutputFlag);
 
     // create the parser
     CommandLineParser parser = new DefaultParser();
@@ -105,6 +128,14 @@ public class PoT {
         pathFile = line.getOptionValue("pathfile");
       }
 
+      if (line.hasOption("outputfile")) {
+          outputFile = line.getOptionValue("outputfile");
+      }
+
+      if (line.hasOption("json")) {
+          outputFormat = OUTPUT_FORMATS.JSON;
+      }
+
       if (line.hasOption("help")
           || (line.getOptions() == null || (line.getOptions() != null && line
               .getOptions().length == 0))
@@ -120,9 +151,18 @@ public class PoT {
         List<File> files = (List<File>) FileUtils.listFiles(dir,
             TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
         videoFiles = new ArrayList<Path>(files.size());
+
         for (File file : files) {
-          videoFiles.add(file.toPath());
+          String filePath = file.toString();
+
+          // When given a directory to load videos from we need to ensure that we
+          // don't try to load the of.txt and hog.txt intermediate result files
+          // that results from previous processing runs.
+          if (!filePath.contains(".txt")) {
+            videoFiles.add(file.toPath());
+          }
         }
+
         LOG.info("Added " + videoFiles.size() + " video files from "
             + directoryPath);
 
@@ -198,6 +238,11 @@ public class PoT {
       fv_list.add(fv);
     }
 
+    double[][] similarities = calculateSimilarities(fv_list);
+    writeSimilarityOutput(files, similarities);
+  }
+
+  private static double[][] calculateSimilarities(ArrayList<FeatureVector> fv_list) {
     // feature vector similarity measure
     double[] mean_dists = new double[fv_list.get(0).numDim()];
     for (int i = 0; i < fv_list.get(0).numDim(); i++)
@@ -207,22 +252,66 @@ public class PoT {
       System.out.format("%f ", mean_dists[i]);
     System.out.println("");
 
-    try (FileOutputStream fos = new FileOutputStream("similarity.txt");
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(fos));) {
-      for (int i = 0; i < fv_list.size(); i++) {
-        System.out.format("%d ", i);
+    double[][] sims = new double[fv_list.size()][fv_list.size()];
+    for (int i = 0; i < fv_list.size(); i++) {
+      for (int j = 0; j < fv_list.size(); j++) {
+        sims[i][j] = kernelDistance(fv_list.get(i), fv_list.get(j), mean_dists);
+      }
+    }
 
-        for (int j = 0; j < fv_list.size(); j++) {
-          double sim = kernelDistance(fv_list.get(i), fv_list.get(j),
-              mean_dists);
+    return sims;
+  }
 
-          writer.write(String.format("%f,", sim));
+  private static void writeSimilarityOutput(ArrayList<Path> files, double[][] similarities) {
+    if (outputFormat == OUTPUT_FORMATS.TXT) {
+      writeSimilarityToTextFile(similarities);
+    } else if (outputFormat == OUTPUT_FORMATS.JSON) {
+      writeSimilarityToJSONFile(files, similarities);
+    } else {
+      LOG.severe("Invalid output format. Skipping similarity dump.");
+    }
+  }
+
+  private static void writeSimilarityToTextFile(double[][] similarities) {
+    try {
+      FileOutputStream fos = new FileOutputStream(outputFile);
+      BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(fos));
+
+      for (int i = 0; i < similarities.length; i++) {
+        for (int j = 0; j < similarities[0].length; j++) {
+          writer.write(String.format("%f,", similarities[i][j]));
         }
         writer.newLine();
       }
-      writer.newLine();
-    } catch (IOException x) {
-      System.err.println(x);
+
+      writer.close();
+      fos.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private static void writeSimilarityToJSONFile(ArrayList<Path> files, double[][] similarities) {
+    JSONObject root_json_obj = new JSONObject();
+
+    for (int i = 0; i < similarities.length; i++) {
+      JSONObject fileJsonObj = new JSONObject();
+
+      for (int j = 0; j < similarities[0].length; j++) {
+        fileJsonObj.put(files.get(j).getFileName(), similarities[i][j]);
+      }
+
+      root_json_obj.put(files.get(i).getFileName(), fileJsonObj);
+    }
+
+    try {
+      outputFile = outputFile.substring(0, outputFile.lastIndexOf('.')) + ".json";
+      FileWriter file = new FileWriter(outputFile);
+      file.write(root_json_obj.toJSONString());
+      file.flush();
+      file.close();
+    } catch (IOException e) {
+      e.printStackTrace();
     }
   }
 
