@@ -120,9 +120,18 @@ public class PoT {
         List<File> files = (List<File>) FileUtils.listFiles(dir,
             TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
         videoFiles = new ArrayList<Path>(files.size());
+
         for (File file : files) {
-          videoFiles.add(file.toPath());
+          String filePath = file.toString();
+
+          // When given a directory to load videos from we need to ensure that we
+          // don't try to load the of.txt and hog.txt intermediate result files
+          // that results from previous processing runs.
+          if (!filePath.contains(".txt")) {
+            videoFiles.add(file.toPath());
+          }
         }
+
         LOG.info("Added " + videoFiles.size() + " video files from "
             + directoryPath);
 
