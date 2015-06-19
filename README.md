@@ -1,6 +1,10 @@
 # pooled_time_series
 PoT java implementation
 
+# Dependencies
+* Maven (Version shouldn't matter much. Tested with 2.x and 3.x.)
+* OpenCV 2.4.x (Tested with 2.4.9 and 2.4.11)
+
 # Pre-requisites
 If you get any errors running brew install opencv related to numpy, please run:
 
