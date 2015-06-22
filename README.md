@@ -1,6 +1,10 @@
 # pooled_time_series
 PoT java implementation
 
+# Dependencies
+* Maven (Version shouldn't matter much. Tested with 2.x and 3.x.)
+* OpenCV 2.4.x (Tested with 2.4.9 and 2.4.11)
+
 # Pre-requisites
 If you get any errors running brew install opencv related to numpy, please run:
 
@@ -23,11 +27,15 @@ Directory which contains the associated dylib OpenCV dynamic library along with 
  
 ```
 usage: pooled_time_series
- -d,--dir <directory>        A directory with image files in it
- -h,--help                   Print this message.
- -p,--pathfile <path file>   A file containing full absolute paths to
-                             videos. Previous default was
-                             memex-index_temp.txt
+ -d,--dir <directory>            A directory with image files in it
+ -h,--help                       Print this message.
+ -j,--json                       Set similarity output format to JSON.
+                                 Defaults to .txt
+ -o,--outputfile <output file>   File containing similarity results.
+                                 Defaults to ./similarity.txt
+ -p,--pathfile <path file>       A file containing full absolute paths to
+                                 videos. Previous default was
+                                 memex-index_temp.txt
 ```
 So, to call the code e.g., on a directory of files called `data`, you would run (e.g., with OpenCV 2.4.9):
 
