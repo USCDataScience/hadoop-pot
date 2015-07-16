@@ -439,8 +439,13 @@ public class PoT {
 
     VideoCapture capture = new VideoCapture(filename.toString());
 
+<<<<<<< HEAD
     if (!capture.isOpened()) {
       LOG.warning("video file " + filename.getFileName() + " could not be opened.");
+=======
+      LOG.warning("video file not opened.");
+>>>>>>> 1144353... bug fix for empty video file errors
+      
       double[][][] hist = new double[w_d][h_d][o_d];
       histograms.add(hist);
     }
@@ -459,6 +464,8 @@ public class PoT {
 	      // capturing the video images
 	      capture.read(original_frame);
 	
+	      if (original_frame.empty()) {
+<<<<<<< HEAD
             if (original_frame.empty()) {
               if (frame_index == 0) {
                 throw new PoTException("Could not read the video file");
@@ -466,6 +473,9 @@ public class PoT {
               else
                 break;
             }
+=======
+	        break;
+>>>>>>> 1144353... bug fix for empty video file errors
 	      } else {
 	        // resizing the captured frame and converting it to the gray scale
 	        // image.
@@ -650,7 +660,7 @@ public class PoT {
 	      // capturing the video images
 	      capture.read(original_frame);
 	      if (original_frame.empty()) {
-
+<<<<<<< HEAD
             if (original_frame.empty()) {
               if (i == 0) {
                 throw new PoTException("Could not read the video file");
@@ -658,7 +668,9 @@ public class PoT {
               else
                 break;
             }
-
+=======
+	        break;
+>>>>>>> 1144353... bug fix for empty video file errors
 	      }
 	
 	      double[][][] hist = new double[w_d][h_d][o_d];
