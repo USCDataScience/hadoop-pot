@@ -367,52 +367,56 @@ public class PoT {
 
     VideoCapture capture = new VideoCapture(filename.toString());
 
-    if (!capture.isOpened())
       LOG.warning("video file not opened.");
-
-    // variables for processing images
-    Mat original_frame = new Mat();
-
-    Mat frame = new Mat();
-    Mat frame_gray = new Mat();
-    Mat prev_frame_gray = new Mat();
-    MatOfPoint2f flow = new MatOfPoint2f();
-
-    // computing a list of histogram of optical flows (i.e. a list of 5*5*8
-    // arrays)
-    for (int frame_index = 0;; frame_index++) {
-      // capturing the video images
-      capture.read(original_frame);
-
-      if (original_frame.empty()) {
-        break;
-      } else {
-        // resizing the captured frame and converting it to the gray scale
-        // image.
-        Imgproc.resize(original_frame, frame, new Size(frame_width,
-            frame_height));
-        Imgproc.cvtColor(frame, frame_gray, Imgproc.COLOR_BGR2GRAY);
-
-        double[][][] hist = new double[w_d][h_d][o_d];
-        histograms.add(hist);
-
-        // from frame #2
-        if (frame_index > 0) {
-          // calculate optical flows
-          Video.calcOpticalFlowFarneback(prev_frame_gray, frame_gray, flow,
-              0.5, 1, 10, 2, 7, 1.5, 0); // 0.5, 1, 15, 2, 7, 1.5, 0
-
-          // update histogram of optical flows
-          updateOpticalHistogram(histograms.get(frame_index), flow);
-        }
-
-        Mat temp_frame = prev_frame_gray;
-        prev_frame_gray = frame_gray;
-        frame_gray = temp_frame;
-      }
+      
+      double[][][] hist = new double[w_d][h_d][o_d];
+      histograms.add(hist);
     }
-
-    capture.release();
+    else {
+	    // variables for processing images
+	    Mat original_frame = new Mat();
+	
+	    Mat frame = new Mat();
+	    Mat frame_gray = new Mat();
+	    Mat prev_frame_gray = new Mat();
+	    MatOfPoint2f flow = new MatOfPoint2f();
+	
+	    // computing a list of histogram of optical flows (i.e. a list of 5*5*8
+	    // arrays)
+	    for (int frame_index = 0;; frame_index++) {
+	      // capturing the video images
+	      capture.read(original_frame);
+	
+	      if (original_frame.empty()) {
+	        break;
+	      } else {
+	        // resizing the captured frame and converting it to the gray scale
+	        // image.
+	        Imgproc.resize(original_frame, frame, new Size(frame_width,
+	            frame_height));
+	        Imgproc.cvtColor(frame, frame_gray, Imgproc.COLOR_BGR2GRAY);
+	
+	        double[][][] hist = new double[w_d][h_d][o_d];
+	        histograms.add(hist);
+	
+	        // from frame #2
+	        if (frame_index > 0) {
+	          // calculate optical flows
+	          Video.calcOpticalFlowFarneback(prev_frame_gray, frame_gray, flow,
+	              0.5, 1, 10, 2, 7, 1.5, 0); // 0.5, 1, 15, 2, 7, 1.5, 0
+	
+	          // update histogram of optical flows
+	          updateOpticalHistogram(histograms.get(frame_index), flow);
+	        }
+	
+	        Mat temp_frame = prev_frame_gray;
+	        prev_frame_gray = frame_gray;
+	        frame_gray = temp_frame;
+	      }
+	    }
+	
+	    capture.release();
+    }
 
     return histograms;
   }
@@ -551,36 +555,41 @@ public class PoT {
 
     VideoCapture capture = new VideoCapture(filename.toString());
 
-    if (!capture.isOpened())
+    if (!capture.isOpened()) {
       LOG.warning("video file not opened.");
-
-    // variables for processing images
-    Mat original_frame = new Mat();
-    Mat resized = new Mat();
-    Mat resized_gray = new Mat();
-
-    // initializing a list of histogram of gradients (i.e. a list of s*s*9
-    // arrays)
-    for (int i = 0;; i++) {
-      // capturing the video images
-      capture.read(original_frame);
-      if (original_frame.empty()) {
-        break;
-      }
-
+      
       double[][][] hist = new double[w_d][h_d][o_d];
-
-      Imgproc.resize(original_frame, resized, new Size(frame_width,
-          frame_height));
-      Imgproc.cvtColor(resized, resized_gray, Imgproc.COLOR_BGR2GRAY);
-
-      ArrayList<double[][]> gradients = computeGradients(resized_gray, o_d);
-      updateGradientHistogram(hist, gradients);
-
       histograms.add(hist);
     }
-
-    capture.release();
+    else {
+	    // variables for processing images
+	    Mat original_frame = new Mat();
+	    Mat resized = new Mat();
+	    Mat resized_gray = new Mat();
+	
+	    // initializing a list of histogram of gradients (i.e. a list of s*s*9
+	    // arrays)
+	    for (int i = 0;; i++) {
+	      // capturing the video images
+	      capture.read(original_frame);
+	      if (original_frame.empty()) {
+	        break;
+	      }
+	
+	      double[][][] hist = new double[w_d][h_d][o_d];
+	
+	      Imgproc.resize(original_frame, resized, new Size(frame_width,
+	          frame_height));
+	      Imgproc.cvtColor(resized, resized_gray, Imgproc.COLOR_BGR2GRAY);
+	
+	      ArrayList<double[][]> gradients = computeGradients(resized_gray, o_d);
+	      updateGradientHistogram(hist, gradients);
+	
+	      histograms.add(hist);
+	    }
+	
+	    capture.release();
+    }
 
     return histograms;
   }
@@ -697,10 +706,10 @@ public class PoT {
     ArrayList<Double> feature = new ArrayList<Double>();
 
     for (int j = 0; j < time_windows_list.size(); j++) {
-      int duration = end - start + 1;
+      int duration = end - start;
 
       for (int i = 0; i < series[0].length; i++) {
-        if (duration <= 0) {
+        if (duration < 0) {
           if (feature_mode == 2 || feature_mode == 4) {
             feature.add(0.0);
             feature.add(0.0);
@@ -713,7 +722,7 @@ public class PoT {
         int window_start = start
             + (int) (duration * time_windows_list.get(j)[0] + 0.5);
         int window_end = start
-            + (int) (duration * time_windows_list.get(j)[1] + 0.5) - 1;
+            + (int) (duration * time_windows_list.get(j)[1] + 0.5);
 
         if (feature_mode == 1) { // Sum pooling
           double sum = 0;
