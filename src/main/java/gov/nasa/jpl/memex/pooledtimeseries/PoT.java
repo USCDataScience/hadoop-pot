@@ -175,6 +175,7 @@ public class PoT {
             + pathFile);
       }
 
+      LOG.info("Beginning similarity evaluation...");
       evaluateSimilarity(videoFiles, 0);
       LOG.info("done.");
 
@@ -193,7 +194,7 @@ public class PoT {
     ArrayList<FeatureVector> fv_list = new ArrayList<FeatureVector>();
 
     for (int k = 0; k < files.size(); k++) {
-      LOG.fine(files.get(k).toString());
+      LOG.info("\nProcessing: " + files.get(k).toString());
 
       ArrayList<double[][]> multi_series = new ArrayList<double[][]>();
       Path file = files.get(k);
@@ -204,12 +205,16 @@ public class PoT {
       double[][] series1;
 
       if (save_mode == 0) {
+        LOG.info("Getting Optical Time Series");
         series1 = getOpticalTimeSeries(file, 5, 5, 8);
+        LOG.info("Caching Optical Time Series vectors");
         saveVectors(series1, series_path1);
       } else {
+        LOG.info("Loading Optical Time Series cache");
         series1 = loadTimeSeries(series_path1);
       }
 
+      LOG.info("Doing multiseries add ...");
       multi_series.add(series1);
 
       // gradients descriptors
@@ -218,17 +223,22 @@ public class PoT {
       double[][] series2;
 
       if (save_mode == 0) {
+        LOG.info("Getting Gradient Time Series");
         series2 = getGradientTimeSeries(file, 5, 5, 8);
+        LOG.info("Caching Gradient Time Seriest vectors");
         saveVectors(series2, series_path2);
       } else {
+        LOG.info("Loading Gradient Time Series cache");
         series2 = loadTimeSeries(series_path2);
       }
 
+      LOG.info("Doing multiseries add ...");
       multi_series.add(series2);
 
       // computing features from series of descriptors
       FeatureVector fv = new FeatureVector();
 
+      LOG.info("Doing feature vector computations");
       for (int i = 0; i < multi_series.size(); i++) {
         fv.feature.add(computeFeaturesFromSeries(multi_series.get(i), tws, 1));
         fv.feature.add(computeFeaturesFromSeries(multi_series.get(i), tws, 2));
@@ -238,7 +248,9 @@ public class PoT {
       fv_list.add(fv);
     }
 
+    LOG.info("Calculating similarities for video files");
     double[][] similarities = calculateSimilarities(fv_list);
+    LOG.info("Writing similarity outputs");
     writeSimilarityOutput(files, similarities);
   }
 
