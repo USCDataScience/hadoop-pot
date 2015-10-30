@@ -175,7 +175,6 @@ public class PoT {
             + pathFile);
       }
 
-      LOG.info("Beginning similarity evaluation...");
       evaluateSimilarity(videoFiles, 0);
       LOG.info("done.");
 
@@ -194,68 +193,67 @@ public class PoT {
     ArrayList<FeatureVector> fv_list = new ArrayList<FeatureVector>();
 
     for (int k = 0; k < files.size(); k++) {
-      LOG.info("\nProcessing: " + files.get(k).toString());
+      try {
+        LOG.fine(files.get(k).toString());
 
-      ArrayList<double[][]> multi_series = new ArrayList<double[][]>();
-      Path file = files.get(k);
+        ArrayList<double[][]> multi_series = new ArrayList<double[][]>();
+        Path file = files.get(k);
 
-      // optical flow descriptors
-      String series_name1 = file.toString() + ".of.txt";
-      Path series_path1 = Paths.get(series_name1);
-      double[][] series1;
+        // optical flow descriptors
+        String series_name1 = file.toString() + ".of.txt";
+        Path series_path1 = Paths.get(series_name1);
+        double[][] series1;
 
-      if (save_mode == 0) {
-        LOG.info("Getting Optical Time Series");
-        series1 = getOpticalTimeSeries(file, 5, 5, 8);
-        LOG.info("Caching Optical Time Series vectors");
-        saveVectors(series1, series_path1);
-      } else {
-        LOG.info("Loading Optical Time Series cache");
-        series1 = loadTimeSeries(series_path1);
+        if (save_mode == 0) {
+          series1 = getOpticalTimeSeries(file, 5, 5, 8);
+          saveVectors(series1, series_path1);
+
+        } else {
+          series1 = loadTimeSeries(series_path1);
+        }
+
+        multi_series.add(series1);
+
+        // gradients descriptors
+        String series_name2 = file.toString() + ".hog.txt";
+        Path series_path2 = Paths.get(series_name2);
+        double[][] series2;
+
+        if (save_mode == 0) {
+          series2 = getGradientTimeSeries(file, 5, 5, 8);
+          saveVectors(series2, series_path2);
+        } else {
+          series2 = loadTimeSeries(series_path2);
+        }
+
+        multi_series.add(series2);
+
+        // computing features from series of descriptors
+        FeatureVector fv = new FeatureVector();
+
+        for (int i = 0; i < multi_series.size(); i++) {
+          fv.feature.add(computeFeaturesFromSeries(multi_series.get(i), tws, 1));
+          fv.feature.add(computeFeaturesFromSeries(multi_series.get(i), tws, 2));
+          fv.feature.add(computeFeaturesFromSeries(multi_series.get(i), tws, 5));
+        }
+        System.out.println("");
+        fv_list.add(fv);
+
+      } catch (PoTException e) {
+        LOG.severe("PoTException occurred: " + e.message + ": Skipping file " + files.get(k));
+        continue;
       }
-
-      LOG.info("Doing multiseries add ...");
-      multi_series.add(series1);
-
-      // gradients descriptors
-      String series_name2 = file.toString() + ".hog.txt";
-      Path series_path2 = Paths.get(series_name2);
-      double[][] series2;
-
-      if (save_mode == 0) {
-        LOG.info("Getting Gradient Time Series");
-        series2 = getGradientTimeSeries(file, 5, 5, 8);
-        LOG.info("Caching Gradient Time Seriest vectors");
-        saveVectors(series2, series_path2);
-      } else {
-        LOG.info("Loading Gradient Time Series cache");
-        series2 = loadTimeSeries(series_path2);
-      }
-
-      LOG.info("Doing multiseries add ...");
-      multi_series.add(series2);
-
-      // computing features from series of descriptors
-      FeatureVector fv = new FeatureVector();
-
-      LOG.info("Doing feature vector computations");
-      for (int i = 0; i < multi_series.size(); i++) {
-        fv.feature.add(computeFeaturesFromSeries(multi_series.get(i), tws, 1));
-        fv.feature.add(computeFeaturesFromSeries(multi_series.get(i), tws, 2));
-        fv.feature.add(computeFeaturesFromSeries(multi_series.get(i), tws, 5));
-      }
-      System.out.println("");
-      fv_list.add(fv);
     }
-
-    LOG.info("Calculating similarities for video files");
     double[][] similarities = calculateSimilarities(fv_list);
-    LOG.info("Writing similarity outputs");
     writeSimilarityOutput(files, similarities);
   }
 
   private static double[][] calculateSimilarities(ArrayList<FeatureVector> fv_list) {
     // feature vector similarity measure
+    if (fv_list.size() < 1) {
+      LOG.info("Feature Vector list is empty. Nothing to calculate. Exiting...");
+      System.exit(1);
+    }
     double[] mean_dists = new double[fv_list.get(0).numDim()];
     for (int i = 0; i < fv_list.get(0).numDim(); i++)
       mean_dists[i] = meanChiSquareDistances(fv_list, i);
@@ -344,7 +342,7 @@ public class PoT {
   }
 
   public static double[][] getOpticalTimeSeries(Path filename, int w_d,
-      int h_d, int o_d) {
+      int h_d, int o_d) throws PoTException {
     ArrayList<double[][][]> hists = getOpticalHistograms(filename, w_d, h_d,
         o_d);
     double[][] vectors = new double[hists.size()][];
@@ -374,7 +372,7 @@ public class PoT {
   }
 
   static ArrayList<double[][][]> getOpticalHistograms(Path filename, int w_d,
-      int h_d, int o_d) {
+      int h_d, int o_d) throws PoTException{
     ArrayList<double[][][]> histograms = new ArrayList<double[][][]>();
 
     VideoCapture capture = new VideoCapture(filename.toString());
@@ -401,7 +399,13 @@ public class PoT {
 	      capture.read(original_frame);
 	
 	      if (original_frame.empty()) {
-	        break;
+            if (original_frame.empty()) {
+              if (frame_index == 0) {
+                throw new PoTException("Could not read the video file");
+              }
+              else
+                break;
+            }
 	      } else {
 	        // resizing the captured frame and converting it to the gray scale
 	        // image.
@@ -550,7 +554,7 @@ public class PoT {
   }
 
   public static double[][] getGradientTimeSeries(Path filename, int w_d,
-      int h_d, int o_d) {
+      int h_d, int o_d) throws PoTException {
     ArrayList<double[][][]> hists = getGradientHistograms(filename, w_d, h_d,
         o_d);
     double[][] vectors = new double[hists.size()][];
@@ -563,7 +567,7 @@ public class PoT {
   }
 
   static ArrayList<double[][][]> getGradientHistograms(Path filename, int w_d,
-      int h_d, int o_d) {
+      int h_d, int o_d) throws PoTException{
     ArrayList<double[][][]> histograms = new ArrayList<double[][][]>();
 
     VideoCapture capture = new VideoCapture(filename.toString());
@@ -586,7 +590,13 @@ public class PoT {
 	      // capturing the video images
 	      capture.read(original_frame);
 	      if (original_frame.empty()) {
-	        break;
+            if (original_frame.empty()) {
+              if (i == 0) {
+                throw new PoTException("Could not read the video file");
+              }
+              else
+                break;
+            }
 	      }
 	
 	      double[][][] hist = new double[w_d][h_d][o_d];
