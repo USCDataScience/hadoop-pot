@@ -36,6 +36,7 @@ usage: pooled_time_series
  -p,--pathfile <path file>       A file containing full absolute paths to
                                  videos. Previous default was
                                  memex-index_temp.txt
+ -file, --file <file>            Path to a single file.
 ```
 So, to call the code e.g., on a directory of files called `data`, you would run (e.g., with OpenCV 2.4.9):
 
