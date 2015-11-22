@@ -75,6 +75,10 @@ public class PoT {
 
   public static void main(String[] args) {
     System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+    Option fileOpt = OptionBuilder.withArgName("file").hasArg()
+            .withLongOpt("file")
+            .withDescription("Path to a single file").create('f');
+    
     Option dirOpt = OptionBuilder.withArgName("directory").hasArg()
         .withLongOpt("dir")
         .withDescription("A directory with image files in it").create('d');
@@ -106,6 +110,7 @@ public class PoT {
     Options options = new Options();
     options.addOption(dirOpt);
     options.addOption(pathFileOpt);
+    options.addOption(fileOpt);
     options.addOption(helpOpt);
     options.addOption(outputFileOpt);
     options.addOption(jsonOutputFlag);
@@ -118,6 +123,7 @@ public class PoT {
       CommandLine line = parser.parse(options, args);
       String directoryPath = null;
       String pathFile = null;
+      String singleFilePath = null;
       ArrayList<Path> videoFiles = null;
 
       if (line.hasOption("dir")) {
@@ -126,6 +132,10 @@ public class PoT {
 
       if (line.hasOption("pathfile")) {
         pathFile = line.getOptionValue("pathfile");
+      }
+      
+      if (line.hasOption("file")) {
+    	  singleFilePath = line.getOptionValue("file");
       }
 
       if (line.hasOption("outputfile")) {
@@ -173,6 +183,13 @@ public class PoT {
         videoFiles = loadFiles(list_file);
         LOG.info("Loaded " + videoFiles.size() + " video files from "
             + pathFile);
+      }
+      
+      if (singleFilePath != null) {
+    	  Path singleFile = Paths.get(singleFilePath);
+    	  LOG.info("Loaded file: " + singleFile);
+    	  videoFiles = new ArrayList<Path>(1);
+    	  videoFiles.add(singleFile);
       }
 
       evaluateSimilarity(videoFiles, 0);
