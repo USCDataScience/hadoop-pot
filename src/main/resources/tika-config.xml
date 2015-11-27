@@ -1,0 +1,15 @@
+<properties>
+  <parsers>
+  <parser class="org.apache.tika.parser.DefaultParser">
+      <mime-exclude>video/mp4</mime-exclude>
+      <mime-exclude>application/mp4</mime-exclude>
+      <mime-exclude>video/quicktime</mime-exclude>
+      <parser-exclude class="org.apache.tika.parser.mp4.MP4Parser"/>
+  </parser>
+  <parser class="org.apache.tika.parser.pot.PooledTimeSeriesParser">
+      <mime>video/mp4</mime>
+      <mime>application/mp4</mime>
+      <mime>video/quicktime</mime>
+  </parser>
+ </parsers>
+</properties>
