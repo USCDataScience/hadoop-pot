@@ -1,0 +1,9 @@
+#!/bin/bash
+
+export ORIG_DIR=`pwd`
+export DIR=`dirname $0`
+cd $DIR
+export DIR_PATH=`pwd`
+cd $ORIG_DIR
+
+java -Djava.library.path=$OPENCV_JAVA_HOME -jar $DIR_PATH/../../../target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar "$@"
