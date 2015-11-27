@@ -23,7 +23,7 @@ Directory which contains the associated dylib OpenCV dynamic library along with 
  1. `mvn install assembly:assembly`
  2. Set OPENCV_JAVA_HOME, e.g., to `export OPENCV_JAVA_HOME=/usr/local/Cellar/opencv/2.4.9/share/OpenCV/java`
  3. Set POOLED_TIME_SERIES_HOME, e.g., to `export POOLED_TIME_SERIES_HOME=$HOME/pooled_time_series/src/main`
- 4. run `pooled-time-series`, e.g., by creating an alias, `alias pooled-time-series="$POOLED_TIME_SERIES_HOME/bin/pooled-time-series"`
+ 4. Run `pooled-time-series`, e.g., by creating an alias, `alias pooled-time-series="$POOLED_TIME_SERIES_HOME/bin/pooled-time-series"`
  
  The above should produce:
  
