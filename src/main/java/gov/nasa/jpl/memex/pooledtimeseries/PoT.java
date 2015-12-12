@@ -107,6 +107,13 @@ public class PoT {
         .withDescription("Set similarity output format to JSON. Defaults to .txt")
         .create('j');
 
+    Option similarityFromFeatureVectorsOpt = OptionBuilder
+            .withArgName("similarity from FeatureVectors directory")
+            .withLongOpt("similarityFromFeatureVectorsDirectory")
+            .hasArg()
+            .withDescription("calculate similarity matrix from given directory of feature vectors")
+            .create('s');
+
     Options options = new Options();
     options.addOption(dirOpt);
     options.addOption(pathFileOpt);
@@ -114,6 +121,7 @@ public class PoT {
     options.addOption(helpOpt);
     options.addOption(outputFileOpt);
     options.addOption(jsonOutputFlag);
+    options.addOption(similarityFromFeatureVectorsOpt);
 
     // create the parser
     CommandLineParser parser = new DefaultParser();
@@ -124,6 +132,7 @@ public class PoT {
       String directoryPath = null;
       String pathFile = null;
       String singleFilePath = null;
+      String similarityFromFeatureVectorsDirectory = null;
       ArrayList<Path> videoFiles = null;
 
       if (line.hasOption("dir")) {
@@ -144,6 +153,10 @@ public class PoT {
 
       if (line.hasOption("json")) {
           outputFormat = OUTPUT_FORMATS.JSON;
+      }
+
+      if (line.hasOption("similarityFromFeatureVectorsDirectory")) {
+        similarityFromFeatureVectorsDirectory = line.getOptionValue("similarityFromFeatureVectorsDirectory");
       }
 
       if (line.hasOption("help")
@@ -192,7 +205,33 @@ public class PoT {
     	  videoFiles.add(singleFile);
       }
 
-      evaluateSimilarity(videoFiles, 0);
+      if (similarityFromFeatureVectorsDirectory != null) {
+        File dir = new File(similarityFromFeatureVectorsDirectory);
+        List<File> files = (List<File>) FileUtils.listFiles(dir,
+                TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
+        videoFiles = new ArrayList<Path>(files.size());
+
+        for (File file : files) {
+          String filePath = file.toString();
+
+          // We need to load only the *.of.txt and *.hog.txt values
+          if (filePath.endsWith(".of.txt")) {
+            videoFiles.add(file.toPath());
+          }
+
+          if (filePath.endsWith(".hog.txt")) {
+            videoFiles.add(file.toPath());
+          }
+        }
+
+        LOG.info("Added " + videoFiles.size() + " feature vectors from "
+                + similarityFromFeatureVectorsDirectory);
+        evaluateSimilarity(videoFiles, 1);
+      }
+
+      else {
+        evaluateSimilarity(videoFiles, 0);
+      }
       LOG.info("done.");
 
     } catch (ParseException exp) {
@@ -217,7 +256,10 @@ public class PoT {
         Path file = files.get(k);
 
         // optical flow descriptors
-        String series_name1 = file.toString() + ".of.txt";
+        String series_name1 = file.toString();
+        if ((!series_name1.endsWith(".of.txt")) && (!series_name1.endsWith(".hog.txt"))) {
+          series_name1 += ".of.txt";
+        }
         Path series_path1 = Paths.get(series_name1);
         double[][] series1;
 
@@ -232,7 +274,10 @@ public class PoT {
         multi_series.add(series1);
 
         // gradients descriptors
-        String series_name2 = file.toString() + ".hog.txt";
+        String series_name2 = file.toString();
+        if ((!series_name2.endsWith(".hog.txt")) && (!series_name2.endsWith(".of.txt"))) {
+          series_name2 += ".hog.txt";
+        }
         Path series_path2 = Paths.get(series_name2);
         double[][] series2;
 
@@ -253,7 +298,7 @@ public class PoT {
           fv.feature.add(computeFeaturesFromSeries(multi_series.get(i), tws, 2));
           fv.feature.add(computeFeaturesFromSeries(multi_series.get(i), tws, 5));
         }
-        System.out.println("");
+        LOG.info("Finished processing file: " + file.getFileName());
         fv_list.add(fv);
 
       } catch (PoTException e) {
@@ -275,6 +320,7 @@ public class PoT {
     for (int i = 0; i < fv_list.get(0).numDim(); i++)
       mean_dists[i] = meanChiSquareDistances(fv_list, i);
 
+    System.out.print("mean-chi-square-distances: ");
     for (int i = 0; i < fv_list.get(0).numDim(); i++)
       System.out.format("%f ", mean_dists[i]);
     System.out.println("");
