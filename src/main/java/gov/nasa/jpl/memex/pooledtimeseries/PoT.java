@@ -320,6 +320,7 @@ public class PoT {
     for (int i = 0; i < fv_list.get(0).numDim(); i++)
       mean_dists[i] = meanChiSquareDistances(fv_list, i);
 
+    System.out.print("mean-chi-square-distances: ");
     for (int i = 0; i < fv_list.get(0).numDim(); i++)
       System.out.format("%f ", mean_dists[i]);
     System.out.println("");
