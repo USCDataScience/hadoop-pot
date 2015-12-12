@@ -155,11 +155,8 @@ public class PoT {
           outputFormat = OUTPUT_FORMATS.JSON;
       }
 
-      System.out.println(line.hasOption("similarityFromFeatureVectorsDirectory"));
-
       if (line.hasOption("similarityFromFeatureVectorsDirectory")) {
         similarityFromFeatureVectorsDirectory = line.getOptionValue("similarityFromFeatureVectorsDirectory");
-        System.out.println(similarityFromFeatureVectorsDirectory);
       }
 
       if (line.hasOption("help")
@@ -301,7 +298,7 @@ public class PoT {
           fv.feature.add(computeFeaturesFromSeries(multi_series.get(i), tws, 2));
           fv.feature.add(computeFeaturesFromSeries(multi_series.get(i), tws, 5));
         }
-        System.out.println("");
+        LOG.info("Finished processing file: " + file.getFileName());
         fv_list.add(fv);
 
       } catch (PoTException e) {
