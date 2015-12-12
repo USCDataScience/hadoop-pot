@@ -441,7 +441,7 @@ public class PoT {
     VideoCapture capture = new VideoCapture(filename.toString());
 
     if (!capture.isOpened()) {
-      LOG.warning("video file not opened.");
+      LOG.warning("video file " + filename.getFileName() + " could not be opened.");
       
       double[][][] hist = new double[w_d][h_d][o_d];
       histograms.add(hist);
