@@ -260,7 +260,7 @@ public class PoT {
 
         // optical flow descriptors
         String series_name1 = file.toString();
-        if (!series_name1.endsWith(".of.txt")) {
+        if ((!series_name1.endsWith(".of.txt")) && (!series_name1.endsWith(".hog.txt"))) {
           series_name1 += ".of.txt";
         }
         Path series_path1 = Paths.get(series_name1);
@@ -278,7 +278,7 @@ public class PoT {
 
         // gradients descriptors
         String series_name2 = file.toString();
-        if (!series_name2.endsWith(".hog.txt")) {
+        if ((!series_name2.endsWith(".hog.txt")) && (!series_name2.endsWith(".of.txt"))) {
           series_name2 += ".hog.txt";
         }
         Path series_path2 = Paths.get(series_name2);
