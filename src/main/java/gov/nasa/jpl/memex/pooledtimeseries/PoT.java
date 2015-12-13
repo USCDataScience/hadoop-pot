@@ -298,7 +298,7 @@ public class PoT {
           fv.feature.add(computeFeaturesFromSeries(multi_series.get(i), tws, 2));
           fv.feature.add(computeFeaturesFromSeries(multi_series.get(i), tws, 5));
         }
-        LOG.info("Finished processing file: " + file.getFileName());
+        LOG.info( (k+1)+"/"+files.size()+" files done. " + "Finished processing file: " + file.getFileName());
         fv_list.add(fv);
 
       } catch (PoTException e) {
