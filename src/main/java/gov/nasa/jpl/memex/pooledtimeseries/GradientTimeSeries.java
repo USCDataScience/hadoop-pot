@@ -28,12 +28,10 @@ public class GradientTimeSeries {
         private Text word = new Text();
 
         public void map(LongWritable key, Text value, OutputCollector<Text, Text> output, Reporter reporter) throws IOException {
-            //output.collect(value, value);
 
             try {
                 double[][] series1 = PoT.getGradientTimeSeries(new File(value.toString()).toPath(), 5, 5, 8);
                 String ofVector = saveVectors(series1);
-                //System.out.println(ofVector);
                 output.collect(value, new Text(ofVector));
             } catch (Exception e) {}
         }
@@ -108,11 +106,8 @@ public class GradientTimeSeries {
         conf.setOutputValueClass(Text.class);
 
         conf.setMapperClass(Map.class);
-        //conf.setCombinerClass(Reduce.class);
-        //conf.setReducerClass(Reduce.class);
 
         conf.setInputFormat(TextInputFormat.class);
-        //conf.setOutputFormat(TextOutputFormat.class);
         conf.setOutputFormat(MultiFileOutput.class);
 
         FileInputFormat.setInputPaths(conf, new Path(args[0]));
