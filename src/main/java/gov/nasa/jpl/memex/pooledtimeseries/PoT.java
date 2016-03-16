@@ -310,7 +310,7 @@ public class PoT {
     writeSimilarityOutput(files, similarities);
   }
 
-  private static double[][] calculateSimilarities(ArrayList<FeatureVector> fv_list) {
+  public static double[][] calculateSimilarities(ArrayList<FeatureVector> fv_list) {
     // feature vector similarity measure
     if (fv_list.size() < 1) {
       LOG.info("Feature Vector list is empty. Nothing to calculate. Exiting...");
