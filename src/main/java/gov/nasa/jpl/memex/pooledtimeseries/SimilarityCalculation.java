@@ -71,8 +71,12 @@ public class SimilarityCalculation {
             }
 
             double[][] similarities = PoT.calculateSimilarities(fvList);
-            String newValue = DigestUtils.sha256Hex(videoPaths[0]).toUpperCase() + ',' + DigestUtils.sha256Hex(videoPaths[1]).toUpperCase();
-            output.collect(new Text(newValue), new Text(String.valueOf(similarities[0][1])));
+            // The below is for dumping the file paths as SHA256 hex strings. For now this is being defaulted
+            // to the full file paths because the other results are rather difficult for a human to read. =)
+            //String newValue = DigestUtils.sha256Hex(videoPaths[0]).toUpperCase() + ',' + DigestUtils.sha256Hex(videoPaths[1]).toUpperCase();
+            //output.collect(new Text(newValue), new Text(String.valueOf(similarities[0][1])));
+            //output.collect(new Text(newValue), new Text(String.valueOf(similarities[0][1])));
+            output.collect(value, new Text(String.valueOf(similarities[0][1])));
         }
     }
 
