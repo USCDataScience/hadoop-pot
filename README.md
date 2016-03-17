@@ -73,14 +73,33 @@ hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.
 
 # Run the Gradient Time Series Job (using the same input as above for convenience)
 hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.GradientTimeSeries OpticalTimeSeriesInput/ GradientTimeSeriesOutput/
+
+# Run the meanChiSquaredDistance job
+TBD
+
+# Run the similarity job (using the value calculated in the previous job)
+hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.SimilarityCalculation SimilarityInput/ SimilarityOutput/ ./meanChiSquaredDistances.txt 
 ```
 
-The input used above above is in ```./OpticalTimeSeriesInput/videos.txt``` and looks like
-
+The input used above is in ```./OpticalTimeSeriesInput/videos.txt``` and looks like
 ```
 /Path/to/example/videos/badvideo.mp4
 /Path/to/example/videos/goodvideo.mp4
 /Path/to/example/videos/movie2.mp4
+```
+
+The input used for the similarity job above ```./SimilarityInput``` looks like the below. It should contain the pairs of all videos to be evaluated.
+```
+/Path/to/badvideo.mp4,/Path/to/badvideo.mp4
+/Path/to/badvideo.mp4,/Path/to/goodvideo.mp4
+/Path/to/goodvideo.mp4,/Path/to/goodvideo.mp4
+```
+
+Example output from the similarity calculation looks something like the below:
+```
+/Path/to/badvideo.mp4,/Path/to/badvideo.mp4     1.0
+/Path/to/badvideo.mp4,/Path/to/goodvideo.mp4 	0.0326700669930306
+/Path/to/goodvideo.mp4,/Path/to/goodvideo.mp4   1.0
 ```
 
 # Research Background and Detail
