@@ -85,19 +85,19 @@ public class MeanDistanceCalculation {
             double[] mean_dists = new double[fvList.get(0).numDim()];
             for (int i = 0; i < fvList.get(0).numDim(); i++)
                 mean_dists[i] = PoT.meanChiSquareDistances(fvList, i);
-        }
-        for(int i=0;i<mean_dist.length();i++)
-            context.write(mean_dist[i], "")
+        
+        for(int i=0;i<mean_dists.length;i++){
+            context.write(new Text(String.valueOf(mean_dists[i])), new Text(""));
     }
-
+    }
 
     public static void main(String[] args) throws Exception {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         
         Configuration baseConf = new Configuration();
-        baseConf.set("videoListPath", args[2])
-        baseConf.set("hofFileList", args[3])
-        baseConf.set("hogFileList", args[4])
+        baseConf.set("videoListPath", args[2]);
+        baseConf.set("hofFileList", args[3]);
+        baseConf.set("hogFileList", args[4]);
         
         Job job = Job.getInstance(baseConf);
         job.setJarByClass(MeanDistanceCalculation.class);
@@ -117,6 +117,7 @@ public class MeanDistanceCalculation {
 
         job.waitForCompletion(true);
     }
+}
 }
 
 
