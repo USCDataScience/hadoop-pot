@@ -50,8 +50,6 @@ import org.opencv.video.Video;
 
 public class MeanChiSquareDistanceCalculation {
     public static class Map extends Mapper<LongWritable, Text, IntWritable, DoubleWritable> {
-        //DoubleWritable output = new DoubleWritable();
-
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException, NumberFormatException {
             System.out.println(value.toString());
             Configuration conf = context.getConfiguration();
@@ -81,7 +79,6 @@ public class MeanChiSquareDistanceCalculation {
             }
 
             for (int i = 0; i < fvList.get(0).numDim(); i++) {
-                //context.write(new IntWritable(i), output.set(
                 context.write(new IntWritable(i), new DoubleWritable(
                     PoT.chiSquareDistance(
                         fvList.get(0).feature.get(i),
@@ -93,7 +90,6 @@ public class MeanChiSquareDistanceCalculation {
     }
 
     public static class Reduce extends Reducer<IntWritable, DoubleWritable, NullWritable, DoubleWritable> {
-    //public static class Reduce extends Reducer<IntWritable, DoubleWritable, IntWritable, DoubleWritable> {
         public void reduce(IntWritable key, Iterable<DoubleWritable> values, Context context) throws IOException, InterruptedException {
             int sum = 0;
             int count = 0;
@@ -102,8 +98,6 @@ public class MeanChiSquareDistanceCalculation {
                 count++;
             }
 
-            //context.write(key, new Text(String.valueOf(sum / (double) count)));
-            //context.write(key, new DoubleWritable(sum / (double) count));
             context.write(null, new DoubleWritable(sum / (double) count));
         }
 
@@ -113,8 +107,6 @@ public class MeanChiSquareDistanceCalculation {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
         Configuration baseConf = new Configuration();
-        //baseConf.set("mapred.reduce.tasks", "0");
-        //baseConf.set("mapred.reduce.tasks", "1");
 
         Job job = Job.getInstance(baseConf);
         job.setJarByClass(MeanChiSquareDistanceCalculation.class);
