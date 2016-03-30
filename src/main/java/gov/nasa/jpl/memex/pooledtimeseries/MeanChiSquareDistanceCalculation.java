@@ -48,17 +48,21 @@ import org.opencv.highgui.VideoCapture;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.video.Video;
 
-public class SimilarityCalculation {
-    public static class Map extends Mapper<LongWritable, Text, Text, Text> {
+public class MeanChiSquareDistanceCalculation {
+    public static class Map extends Mapper<LongWritable, Text, IntWritable, DoubleWritable> {
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException, NumberFormatException {
             System.out.println(value.toString());
             Configuration conf = context.getConfiguration();
-            String meanDistsPath = conf.get("meanDistsFilePath");
 
             String[] videoPaths = value.toString().split(",");
             ArrayList<double[]> tws = PoT.getTemporalWindows(4);
             ArrayList<FeatureVector> fvList = new ArrayList<FeatureVector>();
-            
+
+            // If we're looking at a pair of videos where the videos are the same
+            // we don't include them in the meanChiSquareDistance calculation.
+            if (videoPaths[0].equals(videoPaths[1]))
+                return;
+
 
             for (String video: videoPaths) {
                 ArrayList<double[][]> multiSeries = new ArrayList<double[][]>();
@@ -66,10 +70,8 @@ public class SimilarityCalculation {
                 String ofCachePath = video + ".of.txt";
                 String hogCachePath = video + ".hog.txt";
 
-                double[][] series1 = PoT.loadTimeSeries(new File(ofCachePath).toPath());
-                double[][] series2 = PoT.loadTimeSeries(new File(hogCachePath).toPath());
-                multiSeries.add(series1);
-                multiSeries.add(series2);
+                multiSeries.add(PoT.loadTimeSeries(new File(ofCachePath).toPath()));
+                multiSeries.add(PoT.loadTimeSeries(new File(hogCachePath).toPath()));
 
                 FeatureVector fv = new FeatureVector();
                 for (int i = 0; i < multiSeries.size(); i++) {
@@ -80,38 +82,45 @@ public class SimilarityCalculation {
                 fvList.add(fv);
             }
 
-            double[] meanDists = new double[fvList.get(0).numDim()];
-            BufferedReader inFile = new BufferedReader(new FileReader(meanDistsPath));
-            String line;
-            int counter = 0;
-            while ((line = inFile.readLine()) != null) {
-                meanDists[counter] = Double.parseDouble(line);
-                counter++;
+            for (int i = 0; i < fvList.get(0).numDim(); i++) {
+                context.write(new IntWritable(i), new DoubleWritable(
+                    PoT.chiSquareDistance(
+                        fvList.get(0).feature.get(i),
+                        fvList.get(1).feature.get(i)
+                    )
+                ));
             }
-
-            double similarity = PoT.kernelDistance(fvList.get(0), fvList.get(1), meanDists);
-            
-            File p1 = new File(videoPaths[0]);
-            File p2 = new File(videoPaths[1]);
-            context.write(new Text(p1.getName() + ',' + p2.getName()), new Text(String.valueOf(similarity)));
         }
     }
 
+    public static class Reduce extends Reducer<IntWritable, DoubleWritable, NullWritable, DoubleWritable> {
+        public void reduce(IntWritable key, Iterable<DoubleWritable> values, Context context) throws IOException, InterruptedException {
+            double sum = 0;
+            int count = 0;
+            for (DoubleWritable value : values) {
+                sum += value.get();
+                count++;
+            }
+
+            context.write(null, new DoubleWritable(sum / (double) count));
+        }
+
+    }
 
     public static void main(String[] args) throws Exception {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
         Configuration baseConf = new Configuration();
-        baseConf.set("mapred.reduce.tasks", "0");
-        baseConf.set("meanDistsFilePath", args[2]);
 
         Job job = Job.getInstance(baseConf);
-        job.setJarByClass(SimilarityCalculation.class);
+        job.setJarByClass(MeanChiSquareDistanceCalculation.class);
 
-        job.setJobName("similarity_calc");
+        job.setJobName("mean_chi_square_calculation");
 
-        job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(Text.class);
+        job.setMapOutputKeyClass(IntWritable.class);
+        job.setMapOutputValueClass(DoubleWritable.class);
+        job.setOutputKeyClass(IntWritable.class);
+        job.setOutputValueClass(DoubleWritable.class);
 
         job.setInputFormatClass(TextInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);
@@ -120,6 +129,7 @@ public class SimilarityCalculation {
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
 
         job.setMapperClass(Map.class);
+        job.setReducerClass(Reduce.class);
 
         job.waitForCompletion(true);
     }

@@ -228,9 +228,8 @@ public class PoT {
                 + similarityFromFeatureVectorsDirectory);
         evaluateSimilarity(videoFiles, 1);
       }
-
       else {
-        evaluateSimilarity(videoFiles, 0);
+        evaluateSimilarity(videoFiles, 1);
       }
       LOG.info("done.");
 
@@ -442,7 +441,6 @@ public class PoT {
 
     if (!capture.isOpened()) {
       LOG.warning("video file " + filename.getFileName() + " could not be opened.");
-      
       double[][][] hist = new double[w_d][h_d][o_d];
       histograms.add(hist);
     }
@@ -461,7 +459,6 @@ public class PoT {
 	      // capturing the video images
 	      capture.read(original_frame);
 	
-	      if (original_frame.empty()) {
             if (original_frame.empty()) {
               if (frame_index == 0) {
                 throw new PoTException("Could not read the video file");
@@ -653,6 +650,7 @@ public class PoT {
 	      // capturing the video images
 	      capture.read(original_frame);
 	      if (original_frame.empty()) {
+
             if (original_frame.empty()) {
               if (i == 0) {
                 throw new PoTException("Could not read the video file");
@@ -660,6 +658,7 @@ public class PoT {
               else
                 break;
             }
+
 	      }
 	
 	      double[][][] hist = new double[w_d][h_d][o_d];
