@@ -66,8 +66,10 @@ public class SimilarityCalculation {
                 String ofCachePath = video + ".of.txt";
                 String hogCachePath = video + ".hog.txt";
 
-                multiSeries.add(PoT.loadTimeSeries(new File(ofCachePath).toPath()));
-                multiSeries.add(PoT.loadTimeSeries(new File(hogCachePath).toPath()));
+                double[][] series1 = PoT.loadTimeSeries(new File(ofCachePath).toPath());
+                double[][] series2 = PoT.loadTimeSeries(new File(hogCachePath).toPath());
+                multiSeries.add(series1);
+                multiSeries.add(series2);
 
                 FeatureVector fv = new FeatureVector();
                 for (int i = 0; i < multiSeries.size(); i++) {
@@ -84,7 +86,6 @@ public class SimilarityCalculation {
             int counter = 0;
             while ((line = inFile.readLine()) != null) {
                 meanDists[counter] = Double.parseDouble(line);
-                System.out.println(line);
                 counter++;
             }
 
