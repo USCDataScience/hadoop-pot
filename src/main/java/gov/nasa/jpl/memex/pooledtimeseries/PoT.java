@@ -36,7 +36,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
@@ -124,7 +124,7 @@ public class PoT {
     options.addOption(similarityFromFeatureVectorsOpt);
 
     // create the parser
-    CommandLineParser parser = new DefaultParser();
+    CommandLineParser parser = new GnuParser();
 
     try {
       // parse the command line arguments
@@ -144,7 +144,7 @@ public class PoT {
       }
       
       if (line.hasOption("file")) {
-    	  singleFilePath = line.getOptionValue("file");
+          singleFilePath = line.getOptionValue("file");
       }
 
       if (line.hasOption("outputfile")) {
@@ -199,10 +199,10 @@ public class PoT {
       }
       
       if (singleFilePath != null) {
-    	  Path singleFile = Paths.get(singleFilePath);
-    	  LOG.info("Loaded file: " + singleFile);
-    	  videoFiles = new ArrayList<Path>(1);
-    	  videoFiles.add(singleFile);
+          Path singleFile = Paths.get(singleFilePath);
+          LOG.info("Loaded file: " + singleFile);
+          videoFiles = new ArrayList<Path>(1);
+          videoFiles.add(singleFile);
       }
 
       if (similarityFromFeatureVectorsDirectory != null) {
@@ -228,9 +228,8 @@ public class PoT {
                 + similarityFromFeatureVectorsDirectory);
         evaluateSimilarity(videoFiles, 1);
       }
-
       else {
-        evaluateSimilarity(videoFiles, 0);
+        evaluateSimilarity(videoFiles, 1);
       }
       LOG.info("done.");
 
@@ -310,7 +309,7 @@ public class PoT {
     writeSimilarityOutput(files, similarities);
   }
 
-  private static double[][] calculateSimilarities(ArrayList<FeatureVector> fv_list) {
+  public static double[][] calculateSimilarities(ArrayList<FeatureVector> fv_list) {
     // feature vector similarity measure
     if (fv_list.size() < 1) {
       LOG.info("Feature Vector list is empty. Nothing to calculate. Exiting...");
