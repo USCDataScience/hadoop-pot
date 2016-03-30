@@ -53,11 +53,15 @@ public class MeanChiSquareDistanceCalculation {
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException, NumberFormatException {
             System.out.println(value.toString());
             Configuration conf = context.getConfiguration();
-            String meanDistsPath = conf.get("meanDistsFilePath");
 
             String[] videoPaths = value.toString().split(",");
             ArrayList<double[]> tws = PoT.getTemporalWindows(4);
             ArrayList<FeatureVector> fvList = new ArrayList<FeatureVector>();
+
+            // If we're looking at a pair of videos where the videos are the same
+            // we don't include them in the meanChiSquareDistance calculation.
+            if (videoPaths[0].equals(videoPaths[1]))
+                return;
 
 
             for (String video: videoPaths) {
@@ -91,7 +95,7 @@ public class MeanChiSquareDistanceCalculation {
 
     public static class Reduce extends Reducer<IntWritable, DoubleWritable, NullWritable, DoubleWritable> {
         public void reduce(IntWritable key, Iterable<DoubleWritable> values, Context context) throws IOException, InterruptedException {
-            int sum = 0;
+            double sum = 0;
             int count = 0;
             for (DoubleWritable value : values) {
                 sum += value.get();
