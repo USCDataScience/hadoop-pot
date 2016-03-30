@@ -228,9 +228,8 @@ public class PoT {
                 + similarityFromFeatureVectorsDirectory);
         evaluateSimilarity(videoFiles, 1);
       }
-
       else {
-        evaluateSimilarity(videoFiles, 0);
+        evaluateSimilarity(videoFiles, 1);
       }
       LOG.info("done.");
 
