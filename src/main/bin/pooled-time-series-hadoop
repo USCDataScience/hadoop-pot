@@ -1,0 +1,51 @@
+#!/bin/bash
+# 
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+MAIN_PTS_DIR=$POOLED_TIME_SERIES_HOME/../..
+
+TIME_SERIES_INPUT=$MAIN_PTS_DIR/OpticalAndGradientTimeSeriesInput
+SIMILARITY_INPUT=$MAIN_PTS_DIR/MeanChiSquareAndSimilarityInput
+
+mkdir $TIME_SERIES_INPUT
+mkdir $SIMILARITY_INPUT
+
+find $1 -name "*.mp4" > $TIME_SERIES_INPUT/videos.txt
+python $MAIN_PTS_DIR/src/main/bin/generate_video_pairs.py $TIME_SERIES_INPUT $SIMILARITY_INPUT
+
+# Optical and Gradient Time Series Calcs
+hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.OpticalTimeSeries $TIME_SERIES_INPUT $MAIN_PTS_DIR/OTSOutput
+hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.GradientTimeSeries $TIME_SERIES_INPUT $MAIN_PTS_DIR/GTSOutput
+
+mv $MAIN_PTS_DIR/OTSOutput/*.of.txt $1/
+mv $MAIN_PTS_DIR/GTSOutput/*.hog.txt $1/
+
+rm -rf $MAIN_PTS_DIR/OTSOutput
+rm -rf $MAIN_PTS_DIR/GTSOutput
+
+# MeanChiSquareDistance Vector Calc
+rm -rf $MAIN_PTS_DIR/MeanChiSquaredCalcOutput
+
+hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.MeanChiSquareDistanceCalculation $SIMILARITY_INPUT $MAIN_PTS_DIR/MeanChiSquaredCalcOutput
+
+mv $MAIN_PTS_DIR/MeanChiSquaredCalcOutput/part-r-00000 $1/mean_dists.txt
+
+# Similarity Calc
+rm -rf $MAIN_PTS_DIR/SimilarityCalc
+hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.SimilarityCalculation $SIMILARITY_INPUT $MAIN_PTS_DIR/SimilarityCalc/ $1/mean_dists.txt
+
+rm -rf $TIME_SERIES_INPUT
+rm -rf $SIMILARITY_INPUT

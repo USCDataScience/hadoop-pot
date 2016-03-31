@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env python
 # 
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
@@ -15,10 +15,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-export ORIG_DIR=`pwd`
-export DIR=`dirname $0`
-cd $DIR
-export DIR_PATH=`pwd`
-cd $ORIG_DIR
+import os
+import sys
 
-java -Djava.library.path=$OPENCV_JAVA_HOME -cp $DIR_PATH/../../../target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.PoT "$@"
+with open(os.path.join(sys.argv[1], 'videos.txt')) as in_file:
+    videos = in_file.readlines()
+
+video_counts = len(videos)
+
+with open(os.path.join(sys.argv[2], 'videos.txt'), 'w') as out_file:
+    for i in range(video_counts):
+        for j in range(i, video_counts):
+            first_video = videos[i].strip()
+            second_video = videos[j].strip()
+            out_file.write(first_video + ',' + second_video + '\n')

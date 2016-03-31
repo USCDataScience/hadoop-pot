@@ -50,17 +50,14 @@ pooled-times-series -d data
 Alternatively you can create (independently of this tool) a file with absolute file paths to video files, 1 per line, and then pass it with the `-p` file to the above program.
 
 ## Running Hadoop Jobs
-
-There are currently jobs for creating the intermediate Gradient and Optical Time Series files that you can run. Note, this is very beta-ish! Improvements are in the works.
-
-
-If you'd like to test this as is, you can following the below instructions.
+### Config and Getting Started
 Add the following to your .bashrc
 ```
-export HADOOP_OPTS="-Djava.library.path=<path to OpenCV jar"
+export HADOOP_OPTS="-Djava.library.path=<path to OpenCV jar> -Dmapred.map.child.java.opts=-Djava.library.path=<path to OpenCV jar>"
+alias pooled-time-series-hadoop="$POOLED_TIME_SERIES_HOME/bin/pooled-time-series-hadoop"
 ```
 
-Run the following:
+Build and clean up the jar for running
 ```
 # Compile everything
 mvn install assembly:assembly
@@ -68,6 +65,17 @@ mvn install assembly:assembly
 # Drop the LICENSE file from our jar that will give us headaches otherwise
 zip -d target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar META-INF/LICENSE
 
+```
+
+### Easy Run Script
+
+You run the entire Hadoop pipeline over a folder of videos with the following command. Note that you should pass the full path to the video directory.
+```
+pooled-time-series-hadoop `pwd`/example_videos_dir
+```
+
+### Running Individual Jobs
+```
 # Run the Optical Time Series Job
 hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.OpticalTimeSeries OpticalTimeSeriesInput/ OpticalTimeSeriesOutput/
 
@@ -75,10 +83,10 @@ hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.
 hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.GradientTimeSeries OpticalTimeSeriesInput/ GradientTimeSeriesOutput/
 
 # Run the meanChiSquaredDistance job
-TBD
+hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.SimilarityCalculation SimilarityInput/ MeanChiOutput/
 
 # Run the similarity job (using the value calculated in the previous job)
-hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.SimilarityCalculation SimilarityInput/ SimilarityOutput/ ./meanChiSquaredDistances.txt 
+hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.SimilarityCalculation SimilarityInput/ SimilarityOutput/ ./MeanChiOutput/meanChiSquaredDistances.txt 
 ```
 
 The input used above is in ```./OpticalTimeSeriesInput/videos.txt``` and looks like
