@@ -44,7 +44,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -60,7 +59,6 @@ import org.opencv.video.Video;
  * Pooled Time Series Similarity Metric.
  * 
  */
-@SuppressWarnings({ "static-access", "deprecation" })
 public class PoT {
 
   public static int frame_width = 320;
@@ -466,7 +464,7 @@ public class PoT {
               else
                 break;
             }
-	      } else {
+	       else {
 	        // resizing the captured frame and converting it to the gray scale
 	        // image.
 	        Imgproc.resize(original_frame, frame, new Size(frame_width,
