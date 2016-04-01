@@ -17,32 +17,29 @@
 
 package gov.nasa.jpl.memex.pooledtimeseries;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.*;
-import java.io.*;
+import java.io.StringWriter;
+import java.util.ArrayList;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.conf.*;
-import org.apache.hadoop.io.*;
-import org.apache.hadoop.mapred.*;
-import org.apache.hadoop.util.*;
-import org.apache.hadoop.util.*;
-import org.apache.hadoop.mapred.lib.*;
-
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.FileInputFormat;
+import org.apache.hadoop.mapred.FileOutputFormat;
+import org.apache.hadoop.mapred.JobClient;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.MapReduceBase;
+import org.apache.hadoop.mapred.Mapper;
+import org.apache.hadoop.mapred.OutputCollector;
+import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapred.TextInputFormat;
+import org.apache.hadoop.mapred.lib.MultipleTextOutputFormat;
 import org.opencv.core.Core;
-import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint2f;
-import org.opencv.core.Point;
-import org.opencv.core.Size;
-import org.opencv.highgui.VideoCapture;
-import org.opencv.imgproc.Imgproc;
-import org.opencv.video.Video;
 
 public class GradientTimeSeries {
     public static class Map extends MapReduceBase implements Mapper<LongWritable, Text, Text, Text> {
-        private final static IntWritable one = new IntWritable(1);
-        private Text word = new Text();
-
         public void map(LongWritable key, Text value, OutputCollector<Text, Text> output, Reporter reporter) throws IOException {
 
             try {
