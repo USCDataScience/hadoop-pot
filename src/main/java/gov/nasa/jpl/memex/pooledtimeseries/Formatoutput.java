@@ -1,3 +1,19 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package gov.nasa.jpl.memex.pooledtimeseries;
 import java.io.BufferedReader;
 import java.io.File;
@@ -17,7 +33,7 @@ public class Formatoutput {
 	static File out_file = new File("D:\\DR\\testing\\formatted_similarity_calc.csv");
 	static int j=0;
 	public static void main(String[] args) throws IOException {
-		// TODO Auto-generated method stub
+		
 		if(out_file.exists())
 			out_file.delete();
 		Path in_file = Paths.get("D:\\DR\\testing\\videos.txt");
@@ -41,8 +57,6 @@ public class Formatoutput {
 			System.out.print(files.get(j)+",");
 		}
 		j=0;
-		//System.out.println();
-		//header.println();
 		header.close();
 		br.close();
 		br= new BufferedReader(new FileReader("D:\\DR\\testing\\videos.txt"));
@@ -64,9 +78,6 @@ public class Formatoutput {
 	}
 	public static void writeToFile(ArrayList<String> sim2, List<String> files) throws IOException{
 		PrintWriter similarity = new PrintWriter(new FileWriter(out_file,true));
-		/*if(j!=0)
-			System.out.println();*/
-
 		similarity.println();
 		System.out.println(sim2.size());
 			
@@ -78,15 +89,6 @@ public class Formatoutput {
 		for(int i=0;i<sim2.size();i++){
 			similarity.print(sim2.get(i)+",");
 			System.out.print(sim2.get(i)+",");
-		}/*
-		if(j>0){
-		similarity.println();
-		System.out.println();
-		}*/
-		if(j==7){
-			for(int i=0;i<j-1;i++)
-				similarity.print(",");
-			similarity.print("1");
 		}
 		similarity.close();
 	}
