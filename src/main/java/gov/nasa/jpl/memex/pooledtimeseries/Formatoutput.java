@@ -30,18 +30,18 @@ import com.google.common.base.Charsets;
 
 public class Formatoutput {
 	static ArrayList<String> sim = new ArrayList<String>();
-	static File out_file = new File("D:\\DR\\testing\\formatted_similarity_calc.csv");
+	static File out_file;
 	static int j=0;
 	public static void main(String[] args) throws IOException {
-		
+		 out_file = new File(args[0]);//CSV file to write the output formatted_similarity_calc.csv
 		if(out_file.exists())
 			out_file.delete();
-		Path in_file = Paths.get("D:\\DR\\testing\\videos.txt");
+		Path in_file = Paths.get(args[1]);//Video pairs generated
 		List<String> files =  java.nio.file.Files.readAllLines(in_file,
 	            Charsets.UTF_8);
 		int len = files.size();
 		System.out.println(len);
-		File input = new File("D:\\DR\\testing\\original_videos.txt");
+		File input = new File(args[2]);// List of videos
 		PrintWriter header = new PrintWriter(new FileWriter(out_file,true));
 		BufferedReader br= new BufferedReader(new FileReader(input));
 		String line = null,temp ="";
@@ -59,7 +59,7 @@ public class Formatoutput {
 		j=0;
 		header.close();
 		br.close();
-		br= new BufferedReader(new FileReader("D:\\DR\\testing\\videos.txt"));
+		br= new BufferedReader(new FileReader(args[1]));// Video pairs generated
 		
 		int count=0;
 		while(null!=(line=br.readLine())){
