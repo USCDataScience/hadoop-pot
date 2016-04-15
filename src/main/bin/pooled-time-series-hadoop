@@ -35,7 +35,6 @@ mkdir $PTS_SIMILARITY_INPUT
 echo "directory created"
 
 find $2 -name "*.mp4" > $PTS_TIME_SERIES_INPUT/original_videos.txt
-# hadoop fs -mv $TIME_SERIES_INPUT $PTS_TIME_SERIES_INPUT
 python $MAIN_PTS_DIR/src/main/bin/generate_video_pairs.py $PTS_TIME_SERIES_INPUT $PTS_SIMILARITY_INPUT
 
 hadoop fs -put $PTS_TIME_SERIES_INPUT/original_videos.txt $TIME_SERIES_INPUT
@@ -67,6 +66,3 @@ hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.
 hadoop fs -get $HDFS_PTS_DIR/SimilarityCalc/similarity_calc.txt $PTS_SIMILARITY_INPUT
 hadoop fs -rm -r $TIME_SERIES_INPUT
 hadoop fs -rm -r $SIMILARITY_INPUT
-#hadoop fs -rm -r $HDFS_PTS_DIR
-#rm -r $PTS_TIME_SERIES_INPUT
-#rm -r $PTS_SIMILARITY_INPUT
