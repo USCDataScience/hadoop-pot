@@ -16,36 +16,53 @@
 # limitations under the License.
 
 MAIN_PTS_DIR=$POOLED_TIME_SERIES_HOME/../..
+HDFS_PTS_DIR=/user/mdeploy/pooled_time_series
 
-TIME_SERIES_INPUT=$MAIN_PTS_DIR/OpticalAndGradientTimeSeriesInput
-SIMILARITY_INPUT=$MAIN_PTS_DIR/MeanChiSquareAndSimilarityInput
+TIME_SERIES_INPUT=$HDFS_PTS_DIR/OpticalAndGradientTimeSeriesInput
+SIMILARITY_INPUT=$HDFS_PTS_DIR/MeanChiSquareAndSimilarityInput
 
-mkdir $TIME_SERIES_INPUT
-mkdir $SIMILARITY_INPUT
+PTS_TIME_SERIES_INPUT=$POOLED_TIME_SERIES_HOME/OpticalAndGradientTimeSeriesInput
+PTS_SIMILARITY_INPUT=$POOLED_TIME_SERIES_HOME/MeanChiSquareAndSimilarityInput
 
-find $1 -name "*.mp4" > $TIME_SERIES_INPUT/videos.txt
-python $MAIN_PTS_DIR/src/main/bin/generate_video_pairs.py $TIME_SERIES_INPUT $SIMILARITY_INPUT
+echo "initialized"
+
+hadoop fs -mkdir $HDFS_PTS_DIR
+hadoop fs -mkdir $TIME_SERIES_INPUT
+hadoop fs -mkdir $SIMILARITY_INPUT
+mkdir $PTS_TIME_SERIES_INPUT
+mkdir $PTS_SIMILARITY_INPUT
+
+echo "directory created"
+
+find $2 -name "*.mp4" > $PTS_TIME_SERIES_INPUT/original_videos.txt
+python $MAIN_PTS_DIR/src/main/bin/generate_video_pairs.py $PTS_TIME_SERIES_INPUT $PTS_SIMILARITY_INPUT
+
+hadoop fs -put $PTS_TIME_SERIES_INPUT/original_videos.txt $TIME_SERIES_INPUT
+hadoop fs -put $PTS_SIMILARITY_INPUT/videos.txt $SIMILARITY_INPUT
+
+echo "video pairs generated"
 
 # Optical and Gradient Time Series Calcs
-hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.OpticalTimeSeries $TIME_SERIES_INPUT $MAIN_PTS_DIR/OTSOutput
-hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.GradientTimeSeries $TIME_SERIES_INPUT $MAIN_PTS_DIR/GTSOutput
+hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.OpticalTimeSeries $TIME_SERIES_INPUT $HDFS_PTS_DIR/OTSOutput
+hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.GradientTimeSeries $TIME_SERIES_INPUT $HDFS_PTS_DIR/GTSOutput
 
-mv $MAIN_PTS_DIR/OTSOutput/*.of.txt $1/
-mv $MAIN_PTS_DIR/GTSOutput/*.hog.txt $1/
+hadoop fs -get $HDFS_PTS_DIR/OTSOutput/*.of.txt $2
+hadoop fs -get $HDFS_PTS_DIR/GTSOutput/*.hog.txt $2
 
-rm -rf $MAIN_PTS_DIR/OTSOutput
-rm -rf $MAIN_PTS_DIR/GTSOutput
+hadoop fs -rm -r $HDFS_PTS_DIR/OTSOutput
+hadoop fs -rm -r $HDFS_PTS_DIR/GTSOutput
 
 # MeanChiSquareDistance Vector Calc
-rm -rf $MAIN_PTS_DIR/MeanChiSquaredCalcOutput
+hadoop fs -rm -r $HDFS_PTS_DIR/MeanChiSquaredCalcOutput
 
-hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.MeanChiSquareDistanceCalculation $SIMILARITY_INPUT $MAIN_PTS_DIR/MeanChiSquaredCalcOutput
+hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.MeanChiSquareDistanceCalculation $SIMILARITY_INPUT $HDFS_PTS_DIR/MeanChiSquaredCalcOutput
 
-mv $MAIN_PTS_DIR/MeanChiSquaredCalcOutput/part-r-00000 $1/mean_dists.txt
+hadoop fs -get $HDFS_PTS_DIR/MeanChiSquaredCalcOutput/part-r-00000 $MAIN_PTS_DIR/mean_dists.txt
 
 # Similarity Calc
-rm -rf $MAIN_PTS_DIR/SimilarityCalc
-hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.SimilarityCalculation $SIMILARITY_INPUT $MAIN_PTS_DIR/SimilarityCalc/ $1/mean_dists.txt
+hadoop fs -rm -r $HDFS_PTS_DIR/SimilarityCalc
+hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.SimilarityCalculation $SIMILARITY_INPUT $HDFS_PTS_DIR/SimilarityCalc/ $MAIN_PTS_DIR/mean_dists.txt
 
-rm -rf $TIME_SERIES_INPUT
-rm -rf $SIMILARITY_INPUT
+hadoop fs -get $HDFS_PTS_DIR/SimilarityCalc/similarity_calc.txt $PTS_SIMILARITY_INPUT
+hadoop fs -rm -r $TIME_SERIES_INPUT
+hadoop fs -rm -r $SIMILARITY_INPUT
