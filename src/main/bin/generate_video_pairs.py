@@ -18,7 +18,7 @@
 import os
 import sys
 
-with open(os.path.join(sys.argv[1], 'videos.txt')) as in_file:
+with open(os.path.join(sys.argv[1], 'original_videos.txt')) as in_file:
     videos = in_file.readlines()
 
 video_counts = len(videos)
@@ -28,4 +28,7 @@ with open(os.path.join(sys.argv[2], 'videos.txt'), 'w') as out_file:
         for j in range(i, video_counts):
             first_video = videos[i].strip()
             second_video = videos[j].strip()
-            out_file.write(first_video + ',' + second_video + '\n')
+	    if first_video == second_video:
+                continue
+            else:
+            	out_file.write(first_video + ',' + second_video + '\n')
