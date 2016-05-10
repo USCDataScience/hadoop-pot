@@ -82,7 +82,6 @@ public class SimilarityCalculation {
             
             File p1 = new File(videoPaths[0]);
             File p2 = new File(videoPaths[1]);
-            if(p1.toString().contains(".mp4") && p2.toString().contains(".mp4"))
             context.write(new Text(p1.getName() + ',' + p2.getName()), new Text(String.valueOf(similarity)));
         }
     }
