@@ -33,7 +33,7 @@ public class Formatoutput {
 	static File out_file;
 	static int j=0;
 	public static void main(String[] args) throws IOException {
-		 out_file = new File(args[0]);//CSV file to write the output formatted_similarity_calc.csv
+		 out_file = new File(args[0]+"formatted_similarity_calc.csv");//CSV file to write the output formatted_similarity_calc.csv
 		if(out_file.exists())
 			out_file.delete();
 		Path in_file = Paths.get(args[1]);//Video pairs generated

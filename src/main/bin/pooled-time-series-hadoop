@@ -32,13 +32,14 @@ hadoop fs -mkdir $SIMILARITY_INPUT
 mkdir $PTS_TIME_SERIES_INPUT
 mkdir $PTS_SIMILARITY_INPUT
 
-echo "directory created"
+echo "created"
 
-find $2 -name "*.mp4" > $PTS_TIME_SERIES_INPUT/original_videos.txt
+find $2 -name "*.mp4" > $PTS_TIME_SERIES_INPUT/videos.txt
+#hadoop fs -mv $TIME_SERIES_INPUT $PTS_TIME_SERIES_INPUT
 python $MAIN_PTS_DIR/src/main/bin/generate_video_pairs.py $PTS_TIME_SERIES_INPUT $PTS_SIMILARITY_INPUT
 
-hadoop fs -put $PTS_TIME_SERIES_INPUT/original_videos.txt $TIME_SERIES_INPUT
-hadoop fs -put $PTS_SIMILARITY_INPUT/videos.txt $SIMILARITY_INPUT
+hadoop fs -mv $PTS_TIME_SERIES_INPUT $TIME_SERIES_INPUT
+hadoop fs -mv $PTS_SIMILARITY_INPUT $SIMILARITY_INPUT
 
 echo "video pairs generated"
 
@@ -46,8 +47,8 @@ echo "video pairs generated"
 hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.OpticalTimeSeries $TIME_SERIES_INPUT $HDFS_PTS_DIR/OTSOutput
 hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.GradientTimeSeries $TIME_SERIES_INPUT $HDFS_PTS_DIR/GTSOutput
 
-hadoop fs -get $HDFS_PTS_DIR/OTSOutput/*.of.txt $2
-hadoop fs -get $HDFS_PTS_DIR/GTSOutput/*.hog.txt $2
+hadoop fs -mv $HDFS_PTS_DIR/OTSOutput/*.of.txt $1
+hadoop fs -mv $HDFS_PTS_DIR/GTSOutput/*.hog.txt $1
 
 hadoop fs -rm -r $HDFS_PTS_DIR/OTSOutput
 hadoop fs -rm -r $HDFS_PTS_DIR/GTSOutput
@@ -57,12 +58,16 @@ hadoop fs -rm -r $HDFS_PTS_DIR/MeanChiSquaredCalcOutput
 
 hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.MeanChiSquareDistanceCalculation $SIMILARITY_INPUT $HDFS_PTS_DIR/MeanChiSquaredCalcOutput
 
-hadoop fs -get $HDFS_PTS_DIR/MeanChiSquaredCalcOutput/part-r-00000 $MAIN_PTS_DIR/mean_dists.txt
+hadoop fs -mv $HDFS_PTS_DIR/MeanChiSquaredCalcOutput/part-r-00000 $MAIN_PTS_DIR/mean_dists.txt
 
 # Similarity Calc
 hadoop fs -rm -r $HDFS_PTS_DIR/SimilarityCalc
 hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.SimilarityCalculation $SIMILARITY_INPUT $HDFS_PTS_DIR/SimilarityCalc/ $MAIN_PTS_DIR/mean_dists.txt
 
-hadoop fs -get $HDFS_PTS_DIR/SimilarityCalc/similarity_calc.txt $PTS_SIMILARITY_INPUT
+echo "done"
+
 hadoop fs -rm -r $TIME_SERIES_INPUT
 hadoop fs -rm -r $SIMILARITY_INPUT
+hadoop fs -rm -r $HDFS_PTS_DIR
+rm -r $PTS_TIME_SERIES_INPUT
+rm -r $PTS_SIMILARITY_INPUT

@@ -17,9 +17,7 @@
 
 package gov.nasa.jpl.memex.pooledtimeseries;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -36,29 +34,28 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import org.opencv.core.Core;
 
-
-public class SimilarityCalculation {
+public class MeanDistanceCalculation {
+	static int videos=0;
     public static class Map extends Mapper<LongWritable, Text, Text, Text> {
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException, NumberFormatException {
-            System.out.println(value.toString());
-            Configuration conf = context.getConfiguration();
-            String meanDistsPath = conf.get("meanDistsFilePath");
-
+            System.out.println(videos);
+            videos++;
             String[] videoPaths = value.toString().split(",");
+            String[] hofPaths = value.toString().split("\\n");
+            String[] hogPaths = value.toString().split("\\n");
             ArrayList<double[]> tws = PoT.getTemporalWindows(4);
             ArrayList<FeatureVector> fvList = new ArrayList<FeatureVector>();
             
+            int count=0;
+            for (int j = 0; j < videoPaths.length; j++) {
 
-            for (String video: videoPaths) {
-                ArrayList<double[][]> multiSeries = new ArrayList<double[][]>();
+				ArrayList<double[][]> multiSeries = new ArrayList<double[][]>();
 
-                String ofCachePath = video + ".of.txt";
-                String hogCachePath = video + ".hog.txt";
+                String ofCachePath = hofPaths[count];
+                String hogCachePath = hogPaths[count];
 
-                double[][] series1 = PoT.loadTimeSeries(new File(ofCachePath).toPath());
-                double[][] series2 = PoT.loadTimeSeries(new File(hogCachePath).toPath());
-                multiSeries.add(series1);
-                multiSeries.add(series2);
+                multiSeries.add(PoT.loadTimeSeries(new File(ofCachePath).toPath()));
+                multiSeries.add(PoT.loadTimeSeries(new File(hogCachePath).toPath()));
 
                 FeatureVector fv = new FeatureVector();
                 for (int i = 0; i < multiSeries.size(); i++) {
@@ -67,38 +64,29 @@ public class SimilarityCalculation {
                     fv.feature.add(PoT.computeFeaturesFromSeries(multiSeries.get(i), tws, 5));
                 }
                 fvList.add(fv);
-            }
-
-            double[] meanDists = new double[fvList.get(0).numDim()];
-            BufferedReader inFile = new BufferedReader(new FileReader(meanDistsPath));
-            String line;
-            int counter = 0;
-            while ((line = inFile.readLine()) != null) {
-                meanDists[counter] = Double.parseDouble(line);
-                counter++;
-            }
-
-            double similarity = PoT.kernelDistance(fvList.get(0), fvList.get(1), meanDists);
+			}
             
-            File p1 = new File(videoPaths[0]);
-            File p2 = new File(videoPaths[1]);
-            if(p1.toString().contains(".mp4") && p2.toString().contains(".mp4"))
-            context.write(new Text(p1.getName() + ',' + p2.getName()), new Text(String.valueOf(similarity)));
-        }
+            double[] mean_dists = new double[fvList.get(0).numDim()];
+            for (int i = 0; i < fvList.get(0).numDim(); i++)
+                mean_dists[i] = PoT.meanChiSquareDistances(fvList, i);
+        
+        for(int i=0;i<mean_dists.length;i++){
+            context.write(new Text(String.valueOf(mean_dists[i])), new Text(""));
     }
-
+    }
 
     public static void main(String[] args) throws Exception {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-
+        
         Configuration baseConf = new Configuration();
-        baseConf.set("mapred.reduce.tasks", "0");
-        baseConf.set("meanDistsFilePath", args[2]);
-
+        baseConf.set("videoListPath", args[2]);
+        baseConf.set("hofFileList", args[3]);
+        baseConf.set("hogFileList", args[4]);
+        
         Job job = Job.getInstance(baseConf);
-        job.setJarByClass(SimilarityCalculation.class);
+        job.setJarByClass(MeanDistanceCalculation.class);
 
-        job.setJobName("similarity_calc");
+        job.setJobName("mean_distance_calc");
 
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
@@ -113,6 +101,7 @@ public class SimilarityCalculation {
 
         job.waitForCompletion(true);
     }
+}
 }
 
 

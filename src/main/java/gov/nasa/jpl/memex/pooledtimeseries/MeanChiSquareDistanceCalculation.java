@@ -28,6 +28,7 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -100,10 +101,19 @@ public class MeanChiSquareDistanceCalculation {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
         Configuration baseConf = new Configuration();
-
+        baseConf.set("mapred.map.tasks", "192");
+        baseConf.set("mapreduce.tasktracker.map.tasks.maximum", "192");
+        JobConf conf = new JobConf();
+        System.out.println("Before Map:"+ conf.getNumMapTasks());
+        conf.setNumMapTasks(192);
+        System.out.println("After Map:"+ conf.getNumMapTasks());
         Job job = Job.getInstance(baseConf);
+        
         job.setJarByClass(MeanChiSquareDistanceCalculation.class);
-
+        System.out.println(baseConf.get("mapred.job.tracker"));
+        System.out.println(job.getJobName());
+        System.out.println(baseConf.get("mapred.map.tasks"));
+        
         job.setJobName("mean_chi_square_calculation");
 
         job.setMapOutputKeyClass(IntWritable.class);
