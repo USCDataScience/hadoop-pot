@@ -435,7 +435,8 @@ public class PoT {
       int h_d, int o_d) throws PoTException{
     ArrayList<double[][][]> histograms = new ArrayList<double[][][]>();
 
-    VideoCapture capture = new VideoCapture(filename.toString());
+    try{
+	VideoCapture capture = new VideoCapture(filename.toString());
 
     if (!capture.isOpened()) {
       LOG.warning("video file " + filename.getFileName() + " could not be opened.");
@@ -492,7 +493,9 @@ public class PoT {
 	
 	    capture.release();
     }
-
+   }catch(Exception e){
+	  System.out.println("Exception: "+e);
+  }
     return histograms;
   }
 

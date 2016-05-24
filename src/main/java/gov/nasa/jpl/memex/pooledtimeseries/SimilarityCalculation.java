@@ -28,6 +28,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
@@ -38,9 +39,12 @@ import org.opencv.core.Core;
 
 
 public class SimilarityCalculation {
+	static int videos=0;
     public static class Map extends Mapper<LongWritable, Text, Text, Text> {
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException, NumberFormatException {
-            System.out.println(value.toString());
+            videos++;
+        System.out.println(videos);
+
             Configuration conf = context.getConfiguration();
             String meanDistsPath = conf.get("meanDistsFilePath");
 
@@ -91,11 +95,22 @@ public class SimilarityCalculation {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
         Configuration baseConf = new Configuration();
-        baseConf.set("mapred.reduce.tasks", "0");
+	baseConf.set("mapreduce.job.maps", "96");
+        baseConf.set("mapreduce.job.reduces", "0");
+	baseConf.set("mapred.tasktracker.map.tasks.maximum", "96");
         baseConf.set("meanDistsFilePath", args[2]);
+	
+	JobConf conf = new JobConf();
+        System.out.println("Before Map:"+ conf.getNumMapTasks());
+        conf.setNumMapTasks(196);
+        System.out.println("After Map:"+ conf.getNumMapTasks());
 
         Job job = Job.getInstance(baseConf);
-        job.setJarByClass(SimilarityCalculation.class);
+        System.out.println("Track: "+baseConf.get("mapred.job.tracker"));
+	System.out.println("Job ID" + job.getJobID());
+        System.out.println("Job Name"+job.getJobName());
+        System.out.println(baseConf.get("mapreduce.job.maps"));
+	job.setJarByClass(SimilarityCalculation.class);
 
         job.setJobName("similarity_calc");
 

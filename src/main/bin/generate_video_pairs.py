@@ -26,9 +26,10 @@ video_counts = len(videos)
 with open(os.path.join(sys.argv[2], 'videos.txt'), 'w') as out_file:
     for i in range(video_counts):
         for j in range(i, video_counts):
-            first_video = videos[i].strip()
-            second_video = videos[j].strip()
-	    if first_video == second_video:
-                continue
-            else:
-            	out_file.write(first_video + ',' + second_video + '\n')
+            f = videos[i].strip()
+            one = f.split(' ')
+            first_video = one[len(one)-1]
+            s = videos[j].strip()
+            two = s.split(' ') 
+            second_video = two[len(two)-1]
+            out_file.write(first_video + ',' + second_video + '\n')

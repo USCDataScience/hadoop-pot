@@ -98,7 +98,11 @@ public class GradientTimeSeries {
         protected String generateFileNameForKeyValue(Text key, Text value, String name) {
             String[] splitPath = key.toString().split("/");
             String fileName = splitPath[splitPath.length - 1];
-            return fileName + ".hog.txt";
+            String fName =fileName + ".hog.txt";
+            File file = new File(fName);
+            if(file.exists())
+            	file.delete();
+            return fName;
         }
 
         protected Text generateActualKey(Text key, Text value) {
