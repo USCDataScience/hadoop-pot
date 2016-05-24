@@ -38,7 +38,11 @@ import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.lib.MultipleTextOutputFormat;
+
 import org.opencv.core.Core;
+import org.opencv.highgui.VideoCapture;
+import org.opencv.imgproc.Imgproc;
+import org.opencv.video.Video;
 
 public class OpticalTimeSeries {
     public static class Map extends MapReduceBase implements Mapper<LongWritable, Text, Text, Text> {
@@ -100,7 +104,11 @@ public class OpticalTimeSeries {
         protected String generateFileNameForKeyValue(Text key, Text value, String name) {
             String[] splitPath = key.toString().split("/");
             String fileName = splitPath[splitPath.length - 1];
-            return fileName + ".of.txt";
+            String fName =fileName + ".of.txt";
+            File file = new File(fName);
+            if(file.exists())
+            	file.delete();
+            return fName;
         }
 
         protected Text generateActualKey(Text key, Text value) {
@@ -110,7 +118,6 @@ public class OpticalTimeSeries {
 
     public static void main(String[] args) throws Exception {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-
         Configuration baseConf = new Configuration();
         baseConf.set("mapred.reduce.tasks", "0");
         JobConf conf = new JobConf(baseConf, OpticalTimeSeries.class);
