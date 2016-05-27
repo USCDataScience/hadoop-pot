@@ -33,19 +33,45 @@ mkdir $PTS_TIME_SERIES_INPUT
 mkdir $PTS_SIMILARITY_INPUT
 mkdir $PTS_MEAN_CHI_OUTPUT
 
+echo "*****************"
 echo "directory created"
+echo "*****************"
+
 
 hadoop fs -ls $2 | grep '\.mp4$' > $PTS_TIME_SERIES_INPUT/original_videos.txt
+echo "*****************"
+echo "Checking- " $PTS_TIME_SERIES_INPUT/original_videos.txt
+ls -lrt $PTS_TIME_SERIES_INPUT/original_videos.txt
+echo "*****************"
+
 python $MAIN_PTS_DIR/src/main/bin/generate_video_pairs.py $PTS_TIME_SERIES_INPUT $PTS_SIMILARITY_INPUT
+
+echo "*****************"
+echo "Finished executing generate_video_pairs.py Checking- " $PTS_SIMILARITY_INPUT/videos.txt
+ls -lrt $PTS_SIMILARITY_INPUT/videos.txt
+echo "*****************"
 
 hadoop fs -put $PTS_TIME_SERIES_INPUT/original_videos.txt $TIME_SERIES_INPUT
 hadoop fs -put $PTS_SIMILARITY_INPUT/videos.txt $SIMILARITY_INPUT
-
+echo "*****************"
 echo "video pairs generated"
+hadoop fs -ls $SIMILARITY_INPUT
+hadoop fs -ls $TIME_SERIES_INPUT
+echo "*****************"
 
 # Optical and Gradient Time Series Calcs
 hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.OpticalTimeSeries $TIME_SERIES_INPUT $HDFS_PTS_DIR/OTSOutput
+
+echo "*****************"
+echo "Running OpticalTimeSeries. Output in - " $HDFS_PTS_DIR/OTSOutput
+hadoop fs -ls  $HDFS_PTS_DIR/OTSOutput
+echo "*****************"
 hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.GradientTimeSeries $TIME_SERIES_INPUT $HDFS_PTS_DIR/GTSOutput
+
+echo "*****************"
+echo "Running GradientTimeSeries. Output in - " $HDFS_PTS_DIR/GTSOutput
+hadoop fs -ls $HDFS_PTS_DIR/GTSOutput
+echo "*****************"
 
 hadoop fs -get $HDFS_PTS_DIR/OTSOutput/*.of.txt $2
 hadoop fs -get $HDFS_PTS_DIR/GTSOutput/*.hog.txt $2
@@ -53,13 +79,30 @@ hadoop fs -get $HDFS_PTS_DIR/GTSOutput/*.hog.txt $2
 hadoop fs -rm -r $HDFS_PTS_DIR/OTSOutput
 hadoop fs -rm -r $HDFS_PTS_DIR/GTSOutput
 
+echo "*****************"
+echo "Copied OTSOutput, GTSOutput to local file system: " $2
+ls -lrt $2
+echo "*****************"
+
+
+
 # MeanChiSquareDistance Vector Calc
 hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.MeanChiSquareDistanceCalculation $SIMILARITY_INPUT $HDFS_PTS_DIR/MeanChiSquaredCalcOutput
 hadoop fs -getmerge $HDFS_PTS_DIR/MeanChiSquaredCalcOutput $PTS_MEAN_CHI_OUTPUT/mean_dists.txt
 hadoop fs -put $PTS_MEAN_CHI_OUTPUT/mean_dists.txt $HDFS_PTS_DIR/
+
+echo "*****************"
+echo "Expecting output in " $HDFS_PTS_DIR/MeanChiSquaredCalcOutput
+hadoop fs -ls $HDFS_PTS_DIR/MeanChiSquaredCalcOutput
+echo "Copied merged MeanChiSquaredCalcOutput output to " $PTS_MEAN_CHI_OUTPUT/mean_dists.txt
+ls -lrt $PTS_MEAN_CHI_OUTPUT/mean_dists.txt
+echo "Copied merged to hdfs " $HDFS_PTS_DIR/
+hadoop fs -ls $HDFS_PTS_DIR/
+echo "*****************"
+
 # Similarity Calc
 hadoop fs -rm -r $HDFS_PTS_DIR/SimilarityCalc
-hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.SimilarityCalculation $SIMILARITY_INPUT $HDFS_PTS_DIR/SimilarityCalc/ $HDFS_PTS_DIR/mean_dists.txt
+hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.SimilarityCalculation $SIMILARITY_INPUT $HDFS_PTS_DIR/SimilarityCalc/ $PTS_MEAN_CHI_OUTPUT/mean_dists.txt
 hadoop fs -getmerge $HDFS_PTS_DIR/SimilarityCalc $PTS_SIMILARITY_INPUT/similarity_calc.txt
 
 hadoop fs -rm -r $TIME_SERIES_INPUT
@@ -67,3 +110,4 @@ hadoop fs -rm -r $SIMILARITY_INPUT
 #hadoop fs -rm -r $HDFS_PTS_DIR
 #rm -r $PTS_TIME_SERIES_INPUT
 #rm -r $PTS_SIMILARITY_INPUT
+
