@@ -51,6 +51,7 @@ public class OpticalTimeSeries {
         public void map(LongWritable key, Text value, OutputCollector<Text, Text> output, Reporter reporter) throws IOException {
         	
         	if (!ClassScope.isLibraryLoaded(Core.NATIVE_LIBRARY_NAME)) {
+        		LOG.info("Trying to load - " + Core.NATIVE_LIBRARY_NAME);
         		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         	}
         	

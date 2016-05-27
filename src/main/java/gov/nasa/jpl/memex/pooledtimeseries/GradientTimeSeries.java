@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -41,10 +42,14 @@ import org.opencv.core.Core;
 import gov.nasa.jpl.memex.pooledtimeseries.util.ClassScope;
 
 public class GradientTimeSeries {
+	private static final Logger LOG = Logger.getLogger(SimilarityCalculation.class.getName());
+
     public static class Map extends MapReduceBase implements Mapper<LongWritable, Text, Text, Text> {
+    	
         public void map(LongWritable key, Text value, OutputCollector<Text, Text> output, Reporter reporter) throws IOException {
 
         	if (!ClassScope.isLibraryLoaded(Core.NATIVE_LIBRARY_NAME)) {
+        		LOG.info("Trying to load - " + Core.NATIVE_LIBRARY_NAME);
         		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         	}
         	
