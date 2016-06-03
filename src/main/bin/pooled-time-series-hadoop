@@ -73,6 +73,9 @@ echo "Running GradientTimeSeries. Output in - " $HDFS_PTS_DIR/GTSOutput
 hadoop fs -ls $HDFS_PTS_DIR/GTSOutput
 echo "*****************"
 
+hadoop fs -rm $2/*.of.txt 
+hadoop fs -rm $2/*.hog.txt
+
 hadoop fs -cp $HDFS_PTS_DIR/OTSOutput/*.of.txt $2
 hadoop fs -cp $HDFS_PTS_DIR/GTSOutput/*.hog.txt $2
 
@@ -80,8 +83,8 @@ hadoop fs -rm -r $HDFS_PTS_DIR/OTSOutput
 hadoop fs -rm -r $HDFS_PTS_DIR/GTSOutput
 
 echo "*****************"
-echo "Copied OTSOutput, GTSOutput to local file system: " $2
-ls -lrt $2
+echo "Copied OTSOutput, GTSOutput to : " $2
+hadoop fs -ls $2
 echo "*****************"
 
 
@@ -102,7 +105,7 @@ echo "*****************"
 
 # Similarity Calc
 hadoop fs -rm -r $HDFS_PTS_DIR/SimilarityCalc
-hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.SimilarityCalculation $SIMILARITY_INPUT $HDFS_PTS_DIR/SimilarityCalc/ $HDFS_PTS_DIR/mean_dists.txt
+hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.SimilarityCalculation $SIMILARITY_INPUT $HDFS_PTS_DIR/SimilarityCalc/ $PTS_MEAN_CHI_OUTPUT/mean_dists.txt
 hadoop fs -getmerge $HDFS_PTS_DIR/SimilarityCalc $PTS_SIMILARITY_INPUT/similarity_calc.txt
 
 hadoop fs -rm -r $TIME_SERIES_INPUT
