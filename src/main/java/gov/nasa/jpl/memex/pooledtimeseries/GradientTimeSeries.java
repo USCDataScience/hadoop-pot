@@ -50,7 +50,7 @@ public class GradientTimeSeries {
 
         	if (!ClassScope.isLibraryLoaded(Core.NATIVE_LIBRARY_NAME)) {
         		LOG.info("Trying to load - " + Core.NATIVE_LIBRARY_NAME);
-        		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+                System.load("/mnt/apps/opencv-2.4.11/release/lib/libopencv_java2411.so");
         	}
         	
             try {
