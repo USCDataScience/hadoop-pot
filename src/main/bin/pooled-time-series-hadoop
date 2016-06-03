@@ -73,8 +73,8 @@ echo "Running GradientTimeSeries. Output in - " $HDFS_PTS_DIR/GTSOutput
 hadoop fs -ls $HDFS_PTS_DIR/GTSOutput
 echo "*****************"
 
-hadoop fs -get $HDFS_PTS_DIR/OTSOutput/*.of.txt $2
-hadoop fs -get $HDFS_PTS_DIR/GTSOutput/*.hog.txt $2
+hadoop fs -cp $HDFS_PTS_DIR/OTSOutput/*.of.txt $2
+hadoop fs -cp $HDFS_PTS_DIR/GTSOutput/*.hog.txt $2
 
 hadoop fs -rm -r $HDFS_PTS_DIR/OTSOutput
 hadoop fs -rm -r $HDFS_PTS_DIR/GTSOutput
