@@ -105,7 +105,7 @@ echo "*****************"
 
 # Similarity Calc
 hadoop fs -rm -r $HDFS_PTS_DIR/SimilarityCalc
-hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.SimilarityCalculation $SIMILARITY_INPUT $HDFS_PTS_DIR/SimilarityCalc/ $PTS_MEAN_CHI_OUTPUT/mean_dists.txt
+hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.SimilarityCalculation $SIMILARITY_INPUT $HDFS_PTS_DIR/SimilarityCalc/ $HDFS_PTS_DIR/mean_dists.txt
 hadoop fs -getmerge $HDFS_PTS_DIR/SimilarityCalc $PTS_SIMILARITY_INPUT/similarity_calc.txt
 
 hadoop fs -rm -r $TIME_SERIES_INPUT
