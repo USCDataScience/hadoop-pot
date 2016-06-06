@@ -17,14 +17,15 @@
 
 package gov.nasa.jpl.memex.pooledtimeseries;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -77,14 +78,20 @@ public class SimilarityCalculation {
 			}
 
 			double[] meanDists = new double[fvList.get(0).numDim()];
-			BufferedReader inFile = new BufferedReader(new FileReader(meanDistsPath));
+			
+			//Get the filesystem - HDFS
+			FileSystem fs = FileSystem.get(URI.create(meanDistsPath), conf);
+			
+			//Open the path mentioned in HDFS
+			FSDataInputStream in = fs.open(new Path(meanDistsPath));
+			
 			String line;
 			int counter = 0;
-			while ((line = inFile.readLine()) != null) {
+			while ((line = in.readLine()) != null) {
 				meanDists[counter] = Double.parseDouble(line);
 				counter++;
 			}
-			inFile.close();
+			in.close();
 
 			double similarity = PoT.kernelDistance(fvList.get(0), fvList.get(1), meanDists);
 
