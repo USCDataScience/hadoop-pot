@@ -100,7 +100,7 @@ hadoop fs -ls $HDFS_PTS_DIR/MeanChiSquaredCalcOutput
 echo "Copied merged MeanChiSquaredCalcOutput output to " $PTS_MEAN_CHI_OUTPUT/mean_dists.txt
 ls -lrt $PTS_MEAN_CHI_OUTPUT/mean_dists.txt
 echo "Copied merged to hdfs " $HDFS_PTS_DIR/
-hadoop fs -ls $HDFS_PTS_DIR/
+hadoop fs -ls $HDFS_PTS_DIR/mean_dists.txt
 echo "*****************"
 
 # Similarity Calc

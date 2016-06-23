@@ -228,7 +228,7 @@ public class PoT {
         evaluateSimilarity(videoFiles, 1);
       }
       else {
-        evaluateSimilarity(videoFiles, 1);
+        evaluateSimilarity(videoFiles, 0);
       }
       LOG.info("done.");
 
