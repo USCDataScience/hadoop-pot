@@ -22,12 +22,18 @@ package gov.nasa.jpl.memex.pooledtimeseries;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.FileInputFormat;
@@ -42,22 +48,52 @@ import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.lib.MultipleTextOutputFormat;
 import org.opencv.core.Core;
 
+import com.google.common.io.Files;
+
 import gov.nasa.jpl.memex.pooledtimeseries.util.ClassScope;
 
 public class OpticalTimeSeries {
 	private static final Logger LOG = Logger.getLogger(SimilarityCalculation.class.getName());
 
     public static class Map extends MapReduceBase implements Mapper<LongWritable, Text, Text, Text> {
+    	
         public void map(LongWritable key, Text value, OutputCollector<Text, Text> output, Reporter reporter) throws IOException {
         	
         	if (!ClassScope.isLibraryLoaded(Core.NATIVE_LIBRARY_NAME)) {
         		LOG.info("Trying to load - " + Core.NATIVE_LIBRARY_NAME);
-                System.load("/mnt/apps/opencv-2.4.11/release/lib/libopencv_java2411.so");
+        		try{
+        			System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+        		}catch (java.lang.UnsatisfiedLinkError e){
+        			System.load("/mnt/apps/opencv-2.4.11/release/lib/libopencv_java2411.so");
+        		}
+                
         	}
         	
             try {
-            	LOG.info("Reading video file from - " + value.toString());
-                double[][] series1 = PoT.getOpticalTimeSeries(new File(value.toString()).toPath(), 5, 5, 8);
+            	Path videoPath = new Path(value.toString());
+                LOG.info("Reading video file from - " + videoPath);
+                
+                File tempDir = Files.createTempDir();
+                
+                //Get the filesystem - HDFS
+    			FileSystem fs = FileSystem.get(URI.create(value.toString()), new Configuration());
+    			
+    			//Open the path mentioned in HDFS
+    			FSDataInputStream in = fs.open(videoPath);
+    			LOG.info("Copying video to a TempDir - "+  tempDir.getPath());
+    			LOG.info("Available byte - " + in.available());
+    			try{
+    				 FSDataOutputStream out = fs.create(new Path(tempDir.getAbsolutePath() + "/" + videoPath.getName()));
+    				 IOUtils.copyBytes(in, out,new Configuration() );
+
+    			}catch(Exception e){
+					LOG.log(Level.SEVERE, "Error while copying to TempDir", e);
+    			}finally {
+    				in.close();
+				}
+    			LOG.info("Available videos - " + Arrays.asList(tempDir.listFiles()) );
+    			
+                double[][] series1 = PoT.getOpticalTimeSeries(tempDir.listFiles()[0].toPath(), 5, 5, 8);
                 String ofVector = saveVectors(series1);
                 output.collect(value, new Text(ofVector));
             } catch (Exception e) {

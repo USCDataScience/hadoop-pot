@@ -37,8 +37,8 @@ echo "*****************"
 echo "directory created"
 echo "*****************"
 
-
-hadoop fs -ls $2 | grep '\.mp4$' > $PTS_TIME_SERIES_INPUT/original_videos.txt
+# list full file names omitting information like
+hadoop fs -ls $2 | sed '1d;s/  */ /g' | cut -d\  -f8 | grep '\.mp4$' > $PTS_TIME_SERIES_INPUT/original_videos.txt
 echo "*****************"
 echo "Checking- " $PTS_TIME_SERIES_INPUT/original_videos.txt
 ls -lrt $PTS_TIME_SERIES_INPUT/original_videos.txt
