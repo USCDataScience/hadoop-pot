@@ -20,7 +20,9 @@ package gov.nasa.jpl.memex.pooledtimeseries;
 
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.StringWriter;
 import java.net.URI;
 import java.util.ArrayList;
@@ -30,7 +32,6 @@ import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
@@ -83,7 +84,7 @@ public class OpticalTimeSeries {
     			LOG.info("Copying video to a TempDir - "+  tempDir.getPath());
     			LOG.info("Available byte - " + in.available());
     			try{
-    				 FSDataOutputStream out = fs.create(new Path(tempDir.getAbsolutePath() + "/" + videoPath.getName()));
+    				 OutputStream out = new FileOutputStream(tempDir.getAbsolutePath() + "/" + videoPath.getName() );
     				 IOUtils.copyBytes(in, out,new Configuration() );
 
     			}catch(Exception e){

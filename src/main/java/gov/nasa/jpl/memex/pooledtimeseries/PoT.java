@@ -437,7 +437,7 @@ public class PoT {
     ArrayList<double[][][]> histograms = new ArrayList<double[][][]>();
 
     try{
-	LOG.info("opening video file " + filename.getFileName() );
+	LOG.info("opening video file " + filename.toString() );
 	VideoCapture capture = new VideoCapture(filename.toString());
 
     if (!capture.isOpened()) {
