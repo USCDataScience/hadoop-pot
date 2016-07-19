@@ -63,13 +63,13 @@ echo "*****************"
 hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.OpticalTimeSeries $TIME_SERIES_INPUT $HDFS_PTS_DIR/OTSOutput
 
 echo "*****************"
-echo "Running OpticalTimeSeries. Output in - " $HDFS_PTS_DIR/OTSOutput
+echo "Completed OpticalTimeSeries. Output in - " $HDFS_PTS_DIR/OTSOutput
 hadoop fs -ls  $HDFS_PTS_DIR/OTSOutput
 echo "*****************"
 hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.GradientTimeSeries $TIME_SERIES_INPUT $HDFS_PTS_DIR/GTSOutput
 
 echo "*****************"
-echo "Running GradientTimeSeries. Output in - " $HDFS_PTS_DIR/GTSOutput
+echo "Completed GradientTimeSeries. Output in - " $HDFS_PTS_DIR/GTSOutput
 hadoop fs -ls $HDFS_PTS_DIR/GTSOutput
 echo "*****************"
 
@@ -79,14 +79,13 @@ hadoop fs -rm $2/*.hog.txt
 hadoop fs -cp $HDFS_PTS_DIR/OTSOutput/*.of.txt $2
 hadoop fs -cp $HDFS_PTS_DIR/GTSOutput/*.hog.txt $2
 
-hadoop fs -rm -r $HDFS_PTS_DIR/OTSOutput
-hadoop fs -rm -r $HDFS_PTS_DIR/GTSOutput
-
 echo "*****************"
 echo "Copied OTSOutput, GTSOutput to : " $2
 hadoop fs -ls $2
 echo "*****************"
 
+hadoop fs -rm -r $HDFS_PTS_DIR/OTSOutput
+hadoop fs -rm -r $HDFS_PTS_DIR/GTSOutput
 
 
 # MeanChiSquareDistance Vector Calc
@@ -107,6 +106,8 @@ echo "*****************"
 hadoop fs -rm -r $HDFS_PTS_DIR/SimilarityCalc
 hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.SimilarityCalculation $SIMILARITY_INPUT $HDFS_PTS_DIR/SimilarityCalc/ $HDFS_PTS_DIR/mean_dists.txt
 hadoop fs -getmerge $HDFS_PTS_DIR/SimilarityCalc $PTS_SIMILARITY_INPUT/similarity_calc.txt
+
+echo "Output in - " $PTS_SIMILARITY_INPUT/similarity_calc.txt
 
 hadoop fs -rm -r $TIME_SERIES_INPUT
 hadoop fs -rm -r $SIMILARITY_INPUT

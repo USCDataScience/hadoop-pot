@@ -39,6 +39,8 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import org.opencv.core.Core;
 
+import gov.nasa.jpl.memex.pooledtimeseries.util.HadoopFileUtil;
+
 public class MeanChiSquareDistanceCalculation {
 	static int videos=0;
     public static class Map extends Mapper<LongWritable, Text, IntWritable, DoubleWritable> {
@@ -55,13 +57,12 @@ public class MeanChiSquareDistanceCalculation {
             if (videoPaths[0].equals(videoPaths[1]))
                 return;
 
-
             for (String video: videoPaths) {
                 ArrayList<double[][]> multiSeries = new ArrayList<double[][]>();
 
-                String ofCachePath = video + ".of.txt";
-                String hogCachePath = video + ".hog.txt";
-
+                String ofCachePath = new HadoopFileUtil().copyToTempDir(video + ".of.txt").getAbsolutePath();
+                String hogCachePath = new HadoopFileUtil().copyToTempDir(video + ".hog.txt").getAbsolutePath();
+                
                 multiSeries.add(PoT.loadTimeSeries(new File(ofCachePath).toPath()));
                 multiSeries.add(PoT.loadTimeSeries(new File(hogCachePath).toPath()));
 
