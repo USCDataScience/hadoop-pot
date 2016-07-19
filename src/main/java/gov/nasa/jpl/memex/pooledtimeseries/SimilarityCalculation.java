@@ -38,6 +38,8 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.opencv.core.Core;
 
+import gov.nasa.jpl.memex.pooledtimeseries.util.HadoopFileUtil;
+
 public class SimilarityCalculation {
 	
 	private static final Logger LOG = Logger.getLogger(SimilarityCalculation.class.getName());
@@ -60,11 +62,11 @@ public class SimilarityCalculation {
 			for (String video : videoPaths) {
 				ArrayList<double[][]> multiSeries = new ArrayList<double[][]>();
 
-				String ofCachePath = video + ".of.txt";
-				String hogCachePath = video + ".hog.txt";
-
-				double[][] series1 = PoT.loadTimeSeries(new File(ofCachePath).toPath());
-				double[][] series2 = PoT.loadTimeSeries(new File(hogCachePath).toPath());
+				File ofCachePath = new HadoopFileUtil().copyToTempDir(video + ".of.txt");
+				File hogCachePath = new HadoopFileUtil().copyToTempDir(video + ".hog.txt");
+                
+				double[][] series1 = PoT.loadTimeSeries(ofCachePath.toPath());
+				double[][] series2 = PoT.loadTimeSeries(hogCachePath.toPath());
 				multiSeries.add(series1);
 				multiSeries.add(series2);
 
