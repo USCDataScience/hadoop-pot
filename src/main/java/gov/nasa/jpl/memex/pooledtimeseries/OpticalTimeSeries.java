@@ -23,6 +23,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -38,21 +40,38 @@ import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.lib.MultipleTextOutputFormat;
-
 import org.opencv.core.Core;
-import org.opencv.highgui.VideoCapture;
-import org.opencv.imgproc.Imgproc;
-import org.opencv.video.Video;
+
+import gov.nasa.jpl.memex.pooledtimeseries.util.ClassScope;
+import gov.nasa.jpl.memex.pooledtimeseries.util.HadoopFileUtil;
 
 public class OpticalTimeSeries {
-    public static class Map extends MapReduceBase implements Mapper<LongWritable, Text, Text, Text> {
-        public void map(LongWritable key, Text value, OutputCollector<Text, Text> output, Reporter reporter) throws IOException {
+	private static final Logger LOG = Logger.getLogger(SimilarityCalculation.class.getName());
 
+    public static class Map extends MapReduceBase implements Mapper<LongWritable, Text, Text, Text> {
+    	
+        public void map(LongWritable key, Text value, OutputCollector<Text, Text> output, Reporter reporter) throws IOException {
+        	
+        	if (!ClassScope.isLibraryLoaded(Core.NATIVE_LIBRARY_NAME)) {
+        		LOG.info("Trying to load - " + Core.NATIVE_LIBRARY_NAME);
+        		try{
+        			System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+        		}catch (java.lang.UnsatisfiedLinkError e){
+        			System.load("/mnt/apps/opencv-2.4.11/release/lib/libopencv_java2411.so");
+        		} 
+        	}
+        	
             try {
-                double[][] series1 = PoT.getOpticalTimeSeries(new File(value.toString()).toPath(), 5, 5, 8);
+            	File tempFile = new HadoopFileUtil().copyToTempDir(value.toString());
+            	
+                double[][] series1 = PoT.getOpticalTimeSeries(tempFile.toPath(), 5, 5, 8);
+                
                 String ofVector = saveVectors(series1);
                 output.collect(value, new Text(ofVector));
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            	e.printStackTrace();
+            	LOG.log(Level.SEVERE, "Exception while calling PoT.getOpticalTimeSeries", e);
+            }
         }
 
         private static String saveVectors(double[][] vectors) {
@@ -118,6 +137,8 @@ public class OpticalTimeSeries {
 
     public static void main(String[] args) throws Exception {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+        LOG.info("Loaded- " + Core.NATIVE_LIBRARY_NAME);
+        
         Configuration baseConf = new Configuration();
         baseConf.set("mapred.reduce.tasks", "0");
         JobConf conf = new JobConf(baseConf, OpticalTimeSeries.class);

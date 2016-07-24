@@ -32,6 +32,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
@@ -227,7 +228,7 @@ public class PoT {
         evaluateSimilarity(videoFiles, 1);
       }
       else {
-        evaluateSimilarity(videoFiles, 1);
+        evaluateSimilarity(videoFiles, 0);
       }
       LOG.info("done.");
 
@@ -436,6 +437,7 @@ public class PoT {
     ArrayList<double[][][]> histograms = new ArrayList<double[][][]>();
 
     try{
+	LOG.info("opening video file " + filename.toString() );
 	VideoCapture capture = new VideoCapture(filename.toString());
 
     if (!capture.isOpened()) {
@@ -494,7 +496,8 @@ public class PoT {
 	    capture.release();
     }
    }catch(Exception e){
-	  System.out.println("Exception: "+e);
+	   e.printStackTrace();
+	   LOG.log(Level.SEVERE, "Exception in getOpticalHistograms ", e);
   }
     return histograms;
   }
