@@ -60,12 +60,14 @@ public class MeanChiSquareDistanceCalculation {
             for (String video: videoPaths) {
                 ArrayList<double[][]> multiSeries = new ArrayList<double[][]>();
 
-                String ofCachePath = new HadoopFileUtil().copyToTempDir(video + ".of.txt").getAbsolutePath();
-                String hogCachePath = new HadoopFileUtil().copyToTempDir(video + ".hog.txt").getAbsolutePath();
+                File ofCachePath = new HadoopFileUtil().copyToTempDir(video + ".of.txt");
+                File hogCachePath = new HadoopFileUtil().copyToTempDir(video + ".hog.txt");
                 
-                multiSeries.add(PoT.loadTimeSeries(new File(ofCachePath).toPath()));
-                multiSeries.add(PoT.loadTimeSeries(new File(hogCachePath).toPath()));
-
+                multiSeries.add(PoT.loadTimeSeries(ofCachePath.toPath()));
+                multiSeries.add(PoT.loadTimeSeries(hogCachePath.toPath()));
+                
+                hogCachePath.delete();
+				ofCachePath.delete();
                 FeatureVector fv = new FeatureVector();
                 for (int i = 0; i < multiSeries.size(); i++) {
                     fv.feature.add(PoT.computeFeaturesFromSeries(multiSeries.get(i), tws, 1));
