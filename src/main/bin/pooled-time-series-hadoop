@@ -54,6 +54,10 @@ echo "*****************"
 mkdir $PTS_TIME_SERIES_INPUT/split
 split -l 1000 $PTS_TIME_SERIES_INPUT/original_videos.txt $PTS_TIME_SERIES_INPUT/split/original_videos.txt_
 
+# Create temp space for storing batch results of OTS and GTS 
+hadoop fs -mkdir $HDFS_PTS_DIR/OTSOutput_batch
+hadoop fs -mkdir $HDFS_PTS_DIR/GTSOutput_batch
+ 
 #Loop over all the files in $PTS_TIME_SERIES_INPUT/split/
 # process 1000 videos at one time
 FILES=$PTS_TIME_SERIES_INPUT/split/*
@@ -82,21 +86,32 @@ do
 	echo "Completed GradientTimeSeries. Output in - " $HDFS_PTS_DIR/GTSOutput
 	hadoop fs -ls $HDFS_PTS_DIR/GTSOutput
 	echo "*****************"
+	
+	hadoop fs -cp $HDFS_PTS_DIR/OTSOutput/*.of.txt $HDFS_PTS_DIR/OTSOutput_batch
+	hadoop fs -cp $HDFS_PTS_DIR/GTSOutput/*.hog.txt $HDFS_PTS_DIR/GTSOutput_batch
+	
+	hadoop fs -rm -r $HDFS_PTS_DIR/OTSOutput
+	hadoop fs -rm -r $HDFS_PTS_DIR/GTSOutput
+	
 done
 
 hadoop fs -rm $2/*.of.txt 
 hadoop fs -rm $2/*.hog.txt
 
-hadoop fs -cp $HDFS_PTS_DIR/OTSOutput/*.of.txt $2
-hadoop fs -cp $HDFS_PTS_DIR/GTSOutput/*.hog.txt $2
+hadoop fs -cp $HDFS_PTS_DIR/OTSOutput_batch/*.of.txt $2
+hadoop fs -cp $HDFS_PTS_DIR/GTSOutput_batch/*.hog.txt $2
 
 echo "*****************"
 echo "Copied OTSOutput, GTSOutput to : " $2
-hadoop fs -ls $2
+hadoop fs -ls $2 | head
 echo "*****************"
 
-hadoop fs -rm -r $HDFS_PTS_DIR/OTSOutput
-hadoop fs -rm -r $HDFS_PTS_DIR/GTSOutput
+hadoop fs -rm -r $HDFS_PTS_DIR/OTSOutput_batch
+hadoop fs -rm -r $HDFS_PTS_DIR/GTSOutput_batch
+
+echo "*****************"
+echo "Removed batch outputs after copying to : " $2
+echo "*****************"
 
 
 hadoop fs -put $PTS_SIMILARITY_INPUT/videos.txt $SIMILARITY_INPUT
