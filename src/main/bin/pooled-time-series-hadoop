@@ -62,6 +62,7 @@ do
 	# Remove old original_videos.txt
 	hadoop fs -rm $TIME_SERIES_INPUT/original_videos.txt
 	# copy new batch if video input to hdfs
+	ls $f
 	hadoop fs -put $f $TIME_SERIES_INPUT/original_videos.txt
 	# checking copied input
 	hadoop fs -ls $TIME_SERIES_INPUT
