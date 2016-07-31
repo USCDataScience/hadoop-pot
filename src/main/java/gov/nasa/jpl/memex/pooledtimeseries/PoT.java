@@ -593,29 +593,35 @@ public class PoT {
     }
   }
 
-  public static double[][] loadTimeSeries(Path filename) {
-    double[][] series = new double[1][1];
+	public static double[][] loadTimeSeries(InputStream in) {
+		double[][] series = new double[1][1];
 
-    try (InputStream in = Files.newInputStream(filename);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
-      Scanner scin = new Scanner(in);
+		Scanner scin = new Scanner(in);
 
-      int num_frames = scin.nextInt();
-      int dim = scin.nextInt();
+		int num_frames = scin.nextInt();
+		int dim = scin.nextInt();
 
-      series = new double[num_frames][dim];
+		series = new double[num_frames][dim];
 
-      for (int i = 0; i < num_frames; i++) {
-        for (int j = 0; j < dim; j++) {
-          series[i][j] = scin.nextDouble();
-        }
-      }
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+		for (int i = 0; i < num_frames; i++) {
+			for (int j = 0; j < dim; j++) {
+				series[i][j] = scin.nextDouble();
+			}
+		}
+		
+		scin.close();
+		return series;
 
-    return series;
-  }
+	}
+
+	public static double[][] loadTimeSeries(Path filename) {
+		try (InputStream in = Files.newInputStream(filename);) {
+			return loadTimeSeries(in);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 
   public static double[][] getGradientTimeSeries(Path filename, int w_d,
       int h_d, int o_d) throws PoTException {

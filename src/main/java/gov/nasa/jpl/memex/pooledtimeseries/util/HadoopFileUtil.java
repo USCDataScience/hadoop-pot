@@ -42,7 +42,9 @@ public class HadoopFileUtil {
 	 */
 	public File copyToTempDir(String value) throws IOException {
 		Path videoPath = new Path(value.toString());
-		LOG.info("Reading video file from - " + videoPath);
+		videoPath.getFileSystem(new Configuration());
+		
+		LOG.info("Reading file from - " + videoPath);
 
 		File tempDir = Files.createTempDir();
 
@@ -52,7 +54,7 @@ public class HadoopFileUtil {
 		// Open the path mentioned in HDFS
 		FSDataInputStream in = null;
 		OutputStream out = null;
-		LOG.info("Copying video to a TempDir - " + tempDir.getPath());
+		LOG.info("Copying file to a TempDir - " + tempDir.getPath());
 		try {
 			in = fs.open(videoPath);
 			LOG.info("Available byte - " + in.available());
@@ -68,7 +70,7 @@ public class HadoopFileUtil {
 				out.close();
 			} catch (Exception e) {}
 		}
-		LOG.info("Available videos - " + Arrays.asList(tempDir.listFiles()) );
+		LOG.info("Available files - " + Arrays.asList(tempDir.listFiles()) );
 		
 		return new File(tempDir.getAbsolutePath() + "/" + videoPath.getName());
 	}
