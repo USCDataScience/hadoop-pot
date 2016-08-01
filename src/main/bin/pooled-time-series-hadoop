@@ -51,41 +51,74 @@ echo "Finished executing generate_video_pairs.py Checking- " $PTS_SIMILARITY_INP
 ls -lrt $PTS_SIMILARITY_INPUT/videos.txt
 echo "*****************"
 
-hadoop fs -put $PTS_TIME_SERIES_INPUT/original_videos.txt $TIME_SERIES_INPUT
-hadoop fs -put $PTS_SIMILARITY_INPUT/videos.txt $SIMILARITY_INPUT
-echo "*****************"
-echo "video pairs generated"
-hadoop fs -ls $SIMILARITY_INPUT
-hadoop fs -ls $TIME_SERIES_INPUT
-echo "*****************"
+mkdir $PTS_TIME_SERIES_INPUT/split
+split -l 1000 $PTS_TIME_SERIES_INPUT/original_videos.txt $PTS_TIME_SERIES_INPUT/split/original_videos.txt_
 
-# Optical and Gradient Time Series Calcs
-hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.OpticalTimeSeries $TIME_SERIES_INPUT $HDFS_PTS_DIR/OTSOutput
+# Create temp space for storing batch results of OTS and GTS 
+hadoop fs -mkdir $HDFS_PTS_DIR/OTSOutput_batch
+hadoop fs -mkdir $HDFS_PTS_DIR/GTSOutput_batch
+ 
+#Loop over all the files in $PTS_TIME_SERIES_INPUT/split/
+# process 1000 videos at one time
+FILES=$PTS_TIME_SERIES_INPUT/split/*
+for f in $FILES
+do
+	# Remove old original_videos.txt
+	hadoop fs -rm $TIME_SERIES_INPUT/original_videos.txt
+	# copy new batch if video input to hdfs
+	ls $f
+	hadoop fs -put $f $TIME_SERIES_INPUT/original_videos.txt
+	# checking copied input
+	hadoop fs -ls $TIME_SERIES_INPUT
+	hadoop fs -cat $TIME_SERIES_INPUT/original_videos.txt | wc -l
+	hadoop fs -cat $TIME_SERIES_INPUT/original_videos.txt | head
 
-echo "*****************"
-echo "Completed OpticalTimeSeries. Output in - " $HDFS_PTS_DIR/OTSOutput
-hadoop fs -ls  $HDFS_PTS_DIR/OTSOutput
-echo "*****************"
-hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.GradientTimeSeries $TIME_SERIES_INPUT $HDFS_PTS_DIR/GTSOutput
+	# Optical and Gradient Time Series Calcs
+	hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.OpticalTimeSeries $TIME_SERIES_INPUT $HDFS_PTS_DIR/OTSOutput
+	
+	echo "*****************"
+	echo "Completed OpticalTimeSeries. Output in - " $HDFS_PTS_DIR/OTSOutput
+	hadoop fs -ls  $HDFS_PTS_DIR/OTSOutput
+	echo "*****************"
+	hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.GradientTimeSeries $TIME_SERIES_INPUT $HDFS_PTS_DIR/GTSOutput
 
-echo "*****************"
-echo "Completed GradientTimeSeries. Output in - " $HDFS_PTS_DIR/GTSOutput
-hadoop fs -ls $HDFS_PTS_DIR/GTSOutput
-echo "*****************"
+	echo "*****************"
+	echo "Completed GradientTimeSeries. Output in - " $HDFS_PTS_DIR/GTSOutput
+	hadoop fs -ls $HDFS_PTS_DIR/GTSOutput
+	echo "*****************"
+	
+	hadoop fs -cp $HDFS_PTS_DIR/OTSOutput/*.of.txt $HDFS_PTS_DIR/OTSOutput_batch
+	hadoop fs -cp $HDFS_PTS_DIR/GTSOutput/*.hog.txt $HDFS_PTS_DIR/GTSOutput_batch
+	
+	hadoop fs -rm -r $HDFS_PTS_DIR/OTSOutput
+	hadoop fs -rm -r $HDFS_PTS_DIR/GTSOutput
+	
+done
 
 hadoop fs -rm $2/*.of.txt 
 hadoop fs -rm $2/*.hog.txt
 
-hadoop fs -cp $HDFS_PTS_DIR/OTSOutput/*.of.txt $2
-hadoop fs -cp $HDFS_PTS_DIR/GTSOutput/*.hog.txt $2
+hadoop fs -cp $HDFS_PTS_DIR/OTSOutput_batch/*.of.txt $2
+hadoop fs -cp $HDFS_PTS_DIR/GTSOutput_batch/*.hog.txt $2
 
 echo "*****************"
 echo "Copied OTSOutput, GTSOutput to : " $2
-hadoop fs -ls $2
+hadoop fs -ls $2 | head
 echo "*****************"
 
-hadoop fs -rm -r $HDFS_PTS_DIR/OTSOutput
-hadoop fs -rm -r $HDFS_PTS_DIR/GTSOutput
+hadoop fs -rm -r $HDFS_PTS_DIR/OTSOutput_batch
+hadoop fs -rm -r $HDFS_PTS_DIR/GTSOutput_batch
+
+echo "*****************"
+echo "Removed batch outputs after copying to : " $2
+echo "*****************"
+
+
+hadoop fs -put $PTS_SIMILARITY_INPUT/videos.txt $SIMILARITY_INPUT
+echo "*****************"
+echo "video pairs coiped to hdfs"
+hadoop fs -ls $SIMILARITY_INPUT
+echo "*****************"
 
 
 # MeanChiSquareDistance Vector Calc

@@ -67,6 +67,9 @@ public class SimilarityCalculation {
                 
 				double[][] series1 = PoT.loadTimeSeries(ofCachePath.toPath());
 				double[][] series2 = PoT.loadTimeSeries(hogCachePath.toPath());
+				
+				hogCachePath.delete();
+				ofCachePath.delete();
 				multiSeries.add(series1);
 				multiSeries.add(series2);
 

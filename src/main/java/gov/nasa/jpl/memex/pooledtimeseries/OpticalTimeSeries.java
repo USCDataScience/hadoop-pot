@@ -63,8 +63,8 @@ public class OpticalTimeSeries {
         	
             try {
             	File tempFile = new HadoopFileUtil().copyToTempDir(value.toString());
-            	
                 double[][] series1 = PoT.getOpticalTimeSeries(tempFile.toPath(), 5, 5, 8);
+                tempFile.delete();
                 
                 String ofVector = saveVectors(series1);
                 output.collect(value, new Text(ofVector));

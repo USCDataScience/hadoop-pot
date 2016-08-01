@@ -61,6 +61,8 @@ public class GradientTimeSeries {
             try {
             	File tempFile = new HadoopFileUtil().copyToTempDir(value.toString());
                 double[][] series1 = PoT.getGradientTimeSeries(tempFile.toPath(), 5, 5, 8);
+                tempFile.delete();
+                
                 String ofVector = saveVectors(series1);
                 output.collect(value, new Text(ofVector));
             } catch (Exception e) {}
