@@ -1,5 +1,6 @@
-# pooled_time_series
-PoT java implementation
+Hadoop implementation of the Pooled Time Series (PoT) algorithm
+===============================================================
+PoT java implementation using Apache Hadoop.
 
 # Dependencies
 * Maven (Version shouldn't matter much. Tested with 2.x and 3.x.)
