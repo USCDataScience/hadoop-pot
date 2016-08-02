@@ -144,7 +144,3 @@ echo "Output in - " $PTS_SIMILARITY_INPUT/similarity_calc.txt
 
 hadoop fs -rm -r $TIME_SERIES_INPUT
 hadoop fs -rm -r $SIMILARITY_INPUT
-#hadoop fs -rm -r $HDFS_PTS_DIR
-#rm -r $PTS_TIME_SERIES_INPUT
-#rm -r $PTS_SIMILARITY_INPUT
-
