@@ -14,7 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package gov.nasa.jpl.memex.pooledtimeseries;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -28,7 +30,7 @@ import java.util.List;
 
 import com.google.common.base.Charsets;
 
-public class Formatoutput {
+public class FormatOutput {
 	static ArrayList<String> sim = new ArrayList<String>();
 	static File out_file;
 	static int j=0;
