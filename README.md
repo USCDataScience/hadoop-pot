@@ -77,16 +77,16 @@ pooled-time-series-hadoop `pwd`/example_videos_dir
 ### Running Individual Jobs
 ```
 # Run the Optical Time Series Job
-hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.OpticalTimeSeries OpticalTimeSeriesInput/ OpticalTimeSeriesOutput/
+hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar org.pooledtimeseries.OpticalTimeSeries OpticalTimeSeriesInput/ OpticalTimeSeriesOutput/
 
 # Run the Gradient Time Series Job (using the same input as above for convenience)
-hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.GradientTimeSeries OpticalTimeSeriesInput/ GradientTimeSeriesOutput/
+hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar org.pooledtimeseries.GradientTimeSeries OpticalTimeSeriesInput/ GradientTimeSeriesOutput/
 
 # Run the meanChiSquaredDistance job
-hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.SimilarityCalculation SimilarityInput/ MeanChiOutput/
+hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar org.pooledtimeseries.SimilarityCalculation SimilarityInput/ MeanChiOutput/
 
 # Run the similarity job (using the value calculated in the previous job)
-hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar gov.nasa.jpl.memex.pooledtimeseries.SimilarityCalculation SimilarityInput/ SimilarityOutput/ ./MeanChiOutput/meanChiSquaredDistances.txt 
+hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar org.pooledtimeseries.SimilarityCalculation SimilarityInput/ SimilarityOutput/ ./MeanChiOutput/meanChiSquaredDistances.txt 
 ```
 
 The input used above is in ```./OpticalTimeSeriesInput/videos.txt``` and looks like
