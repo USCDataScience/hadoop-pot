@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package gov.nasa.jpl.memex.pooledtimeseries;
+package org.pooledtimeseries;
 
 
 
@@ -41,9 +41,8 @@ import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.lib.MultipleTextOutputFormat;
 import org.opencv.core.Core;
-
-import gov.nasa.jpl.memex.pooledtimeseries.util.ClassScope;
-import gov.nasa.jpl.memex.pooledtimeseries.util.HadoopFileUtil;
+import org.pooledtimeseries.util.ClassScope;
+import org.pooledtimeseries.util.HadoopFileUtil;
 
 public class OpticalTimeSeries {
 	private static final Logger LOG = Logger.getLogger(SimilarityCalculation.class.getName());

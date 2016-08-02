@@ -1,4 +1,4 @@
-package gov.nasa.jpl.memex.pooledtimeseries;
+package org.pooledtimeseries;
 
 /**
  * Created by Aditya on 10/29/15.

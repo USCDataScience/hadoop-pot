@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package gov.nasa.jpl.memex.pooledtimeseries.util;
+package org.pooledtimeseries.util;
 
 import java.util.Vector;
 import java.util.logging.Logger;

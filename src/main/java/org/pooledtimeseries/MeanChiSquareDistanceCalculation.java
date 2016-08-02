@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package gov.nasa.jpl.memex.pooledtimeseries;
+package org.pooledtimeseries;
 
 import java.io.IOException;
 import java.io.InputStream;

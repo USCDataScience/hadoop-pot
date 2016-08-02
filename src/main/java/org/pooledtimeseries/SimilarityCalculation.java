@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package gov.nasa.jpl.memex.pooledtimeseries;
+package org.pooledtimeseries;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,8 +37,7 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.opencv.core.Core;
-
-import gov.nasa.jpl.memex.pooledtimeseries.util.HadoopFileUtil;
+import org.pooledtimeseries.util.HadoopFileUtil;
 
 public class SimilarityCalculation {
 	

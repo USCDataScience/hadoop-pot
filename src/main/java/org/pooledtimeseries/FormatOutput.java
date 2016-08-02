@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package gov.nasa.jpl.memex.pooledtimeseries;
+package org.pooledtimeseries;
 
 import java.io.BufferedReader;
 import java.io.File;
