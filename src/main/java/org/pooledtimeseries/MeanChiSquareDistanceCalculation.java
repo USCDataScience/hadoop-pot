@@ -66,8 +66,11 @@ public class MeanChiSquareDistanceCalculation {
             for (String video: videoPaths) {
                 ArrayList<double[][]> multiSeries = new ArrayList<double[][]>();
                 
+                long startIoTime = System.currentTimeMillis();
                 multiSeries.add(PoT.loadTimeSeries(getInputStreamFromHDFS(video + ".of.txt")));
                 multiSeries.add(PoT.loadTimeSeries(getInputStreamFromHDFS(video + ".hog.txt")));
+                
+                LOG.info("Read both series in - " + (System.currentTimeMillis() - startIoTime));
                 
                 FeatureVector fv = new FeatureVector();
                 for (int i = 0; i < multiSeries.size(); i++) {
@@ -78,7 +81,7 @@ public class MeanChiSquareDistanceCalculation {
                 fvList.add(fv);
             }
             
-            LOG.info("Loaded Time Series for pair - " + value);
+            LOG.info("Loaded Time Series for pair in - " + (System.currentTimeMillis() - startTime));
 
             for (int i = 0; i < fvList.get(0).numDim(); i++) {
                 context.write(new IntWritable(i), new DoubleWritable(
