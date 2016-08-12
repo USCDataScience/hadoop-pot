@@ -68,27 +68,11 @@ zip -d target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar META-INF
 
 ```
 
-### Easy Run Script
+# Documentation moving to the wiki 
 
-You run the entire Hadoop pipeline over a folder of videos with the following command. Note that you should pass the full path to the video directory.
-```
-pooled-time-series-hadoop `pwd`/example_videos_dir
-```
+We are moving our documentation to the wiki. Please bear with us and report issues as you find them.
 
-### Running Individual Jobs
-```
-# Run the Optical Time Series Job
-hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar org.pooledtimeseries.OpticalTimeSeries OpticalTimeSeriesInput/ OpticalTimeSeriesOutput/
-
-# Run the Gradient Time Series Job (using the same input as above for convenience)
-hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar org.pooledtimeseries.GradientTimeSeries OpticalTimeSeriesInput/ GradientTimeSeriesOutput/
-
-# Run the meanChiSquaredDistance job
-hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar org.pooledtimeseries.MeanChiSquareDistanceCalculation SimilarityInput/ MeanChiOutput/
-
-# Run the similarity job (using the value calculated in the previous job)
-hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar org.pooledtimeseries.SimilarityCalculation SimilarityInput/ SimilarityOutput/ ./MeanChiOutput/meanChiSquaredDistances.txt 
-```
+* [Getting up and running with Hadoop - Individual MR commands](https://github.com/USCDataScience/hadoop-pot/wiki/Individual-MR-job-commands)
 
 The input used above is in ```./OpticalTimeSeriesInput/videos.txt``` and looks like
 ```
