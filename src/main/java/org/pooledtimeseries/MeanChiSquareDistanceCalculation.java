@@ -18,7 +18,6 @@
 package org.pooledtimeseries;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
@@ -38,16 +37,13 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.opencv.core.Core;
+import org.pooledtimeseries.util.HadoopFileUtil;
 
 public class MeanChiSquareDistanceCalculation {
 	private static final Logger LOG = Logger.getLogger(MeanChiSquareDistanceCalculation.class.getName());
 	static int videos=0;
     public static class Map extends Mapper<LongWritable, Text, IntWritable, DoubleWritable> {
     	
-    	private InputStream getInputStreamFromHDFS(String pathToHDFS) throws IOException{
-    		Path videoPath = new Path(pathToHDFS.toString());
-    		return videoPath.getFileSystem(new Configuration()).open(videoPath);
-    	}
     	
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException, NumberFormatException {
         	videos++;    
@@ -67,8 +63,8 @@ public class MeanChiSquareDistanceCalculation {
                 ArrayList<double[][]> multiSeries = new ArrayList<double[][]>();
                 
                 long startIoTime = System.currentTimeMillis();
-                multiSeries.add(PoT.loadTimeSeries(getInputStreamFromHDFS(video + ".of.txt")));
-                multiSeries.add(PoT.loadTimeSeries(getInputStreamFromHDFS(video + ".hog.txt")));
+                multiSeries.add(PoT.loadTimeSeries(HadoopFileUtil.getInputStreamFromHDFS(video + ".of.txt")));
+                multiSeries.add(PoT.loadTimeSeries(HadoopFileUtil.getInputStreamFromHDFS(video + ".hog.txt")));
                 
                 LOG.info("Read both series in - " + (System.currentTimeMillis() - startIoTime));
                 
