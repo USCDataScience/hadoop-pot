@@ -36,7 +36,6 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
-import org.opencv.core.Core;
 import org.pooledtimeseries.util.HadoopFileUtil;
 
 public class SimilarityCalculation {
@@ -98,7 +97,6 @@ public class SimilarityCalculation {
 	}
 
 	public static void main(String[] args) throws Exception {
-		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
 		Configuration baseConf = new Configuration();
 		baseConf.set("mapreduce.job.maps", "96");
