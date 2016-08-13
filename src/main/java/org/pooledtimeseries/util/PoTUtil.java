@@ -23,17 +23,22 @@ import org.opencv.core.Core;
 import org.pooledtimeseries.SimilarityCalculation;
 
 public class PoTUtil {
+	private static final String DEFAULT_LIB_PATH = "/mnt/apps/opencv-2.4.11/release/lib/libopencv_java2411.so";
 	private static final Logger LOG = Logger.getLogger(SimilarityCalculation.class.getName());
 	
-	public static void loadOpenCV(){
+	public static void loadOpenCV(String libraryPath){
 		
 		if (!ClassScope.isLibraryLoaded(Core.NATIVE_LIBRARY_NAME)) {
     		LOG.info("Trying to load - " + Core.NATIVE_LIBRARY_NAME);
     		try{
     			System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
     		}catch (java.lang.UnsatisfiedLinkError e){
-    			System.load("/mnt/apps/opencv-2.4.11/release/lib/libopencv_java2411.so");
+    			System.load(libraryPath);
     		} 
     	}
+	}
+	
+	public static void loadOpenCV(){
+		loadOpenCV(DEFAULT_LIB_PATH);
 	}
 }
