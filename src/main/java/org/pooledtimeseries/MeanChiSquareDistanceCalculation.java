@@ -19,6 +19,7 @@ package org.pooledtimeseries;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
@@ -28,23 +29,26 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.FileOutputFormat;
+import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.apache.hadoop.mapred.MapReduceBase;
+import org.apache.hadoop.mapred.Mapper;
+import org.apache.hadoop.mapred.OutputCollector;
+import org.apache.hadoop.mapred.Reducer;
+import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapred.SequenceFileInputFormat;
+import org.apache.hadoop.mapred.TextOutputFormat;
+import org.pooledtimeseries.cartesian.CartesianInputFormat;
 import org.pooledtimeseries.util.HadoopFileUtil;
 
 public class MeanChiSquareDistanceCalculation {
 	private static final Logger LOG = Logger.getLogger(MeanChiSquareDistanceCalculation.class.getName());
 	static int videos=0;
-    public static class Map extends Mapper<LongWritable, Text, IntWritable, DoubleWritable> {
+    public static class Map extends MapReduceBase implements Mapper<LongWritable, Text, IntWritable, DoubleWritable> {
     	
     	
-        public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException, NumberFormatException {
+    	public void map(LongWritable key, Text value, OutputCollector<IntWritable, DoubleWritable> output, Reporter reporter) throws IOException {
         	videos++;    
         	System.out.println(videos);
         	LOG.info("Processing pair - " + value);
@@ -79,7 +83,8 @@ public class MeanChiSquareDistanceCalculation {
             LOG.info("Loaded Time Series for pair in - " + (System.currentTimeMillis() - startTime));
 
             for (int i = 0; i < fvList.get(0).numDim(); i++) {
-                context.write(new IntWritable(i), new DoubleWritable(
+            	
+            	output.collect(new IntWritable(i), new DoubleWritable(
                     PoT.chiSquareDistance(
                         fvList.get(0).feature.get(i),
                         fvList.get(1).feature.get(i)
@@ -91,56 +96,64 @@ public class MeanChiSquareDistanceCalculation {
             LOG.info("Time taken to complete job - " + (System.currentTimeMillis() - startTime));
         }
     }
-
-    public static class Reduce extends Reducer<IntWritable, DoubleWritable, NullWritable, DoubleWritable> {
-        public void reduce(IntWritable key, Iterable<DoubleWritable> values, Context context) throws IOException, InterruptedException {
+    
+    public static class Reduce extends MapReduceBase implements Reducer<IntWritable, DoubleWritable, NullWritable, DoubleWritable>{
+    
+    	public void reduce(IntWritable key, Iterator<DoubleWritable> values,
+				OutputCollector<NullWritable, DoubleWritable> output, Reporter reporter) throws IOException {
             double sum = 0;
             int count = 0;
-            for (DoubleWritable value : values) {
-                sum += value.get();
+            
+            while (values.hasNext()){
+                sum += values.next().get();
                 count++;
             }
 
-            context.write(null, new DoubleWritable(sum / (double) count));
+            output.collect(null, new DoubleWritable(sum / (double) count));
         }
+
+		
 
     }
 
     public static void main(String[] args) throws Exception {
 
         Configuration baseConf = new Configuration();
-	baseConf.set("mapreduce.job.maps", "96");
-	baseConf.set("mapred.tasktracker.map.tasks.maximum", "96");
+        baseConf.set("mapreduce.job.maps", "96");
+        baseConf.set("mapred.tasktracker.map.tasks.maximum", "96");
         
-	JobConf conf = new JobConf();
+        JobConf conf = new JobConf(baseConf, MeanChiSquareDistanceCalculation.class);
         System.out.println("Before Map:"+ conf.getNumMapTasks());
         conf.setNumMapTasks(96);
         System.out.println("After Map:"+ conf.getNumMapTasks());
 
-	Job job = Job.getInstance(baseConf);
-        job.setJarByClass(MeanChiSquareDistanceCalculation.class);
 	
-        job.setJobName("mean_chi_square_calculation");
-	System.out.println("Job ID" + job.getJobID());
-	System.out.println("Track:" + baseConf.get("mapred.job.tracker"));
-        System.out.println("Job Name"+job.getJobName());
+        conf.setJobName("mean_chi_square_calculation");
+	
+        System.out.println("Track:" + baseConf.get("mapred.job.tracker"));
+        System.out.println("Job Name- "+conf.getJobName());
         System.out.println(baseConf.get("mapreduce.job.maps"));
 
-        job.setMapOutputKeyClass(IntWritable.class);
-        job.setMapOutputValueClass(DoubleWritable.class);
-        job.setOutputKeyClass(IntWritable.class);
-        job.setOutputValueClass(DoubleWritable.class);
+        conf.setMapOutputKeyClass(IntWritable.class);
+        conf.setMapOutputValueClass(DoubleWritable.class);
+        conf.setOutputKeyClass(IntWritable.class);
+        conf.setOutputValueClass(DoubleWritable.class);
 
-        job.setInputFormatClass(TextInputFormat.class);
-        job.setOutputFormatClass(TextOutputFormat.class);
+        conf.setOutputFormat(TextOutputFormat.class);
+        
+        conf.setInputFormat(CartesianInputFormat.class);
+		CartesianInputFormat.setLeftInputInfo(conf, SequenceFileInputFormat.class,
+				args[0]);
+		CartesianInputFormat.setRightInputInfo(conf, SequenceFileInputFormat.class,
+				args[0]);
 
-        FileInputFormat.setInputPaths(job, new Path(args[0]));
-        FileOutputFormat.setOutputPath(job, new Path(args[1]));
 
-        job.setMapperClass(Map.class);
-        job.setReducerClass(Reduce.class);
+        FileOutputFormat.setOutputPath(conf, new Path(args[1]));
 
-        job.waitForCompletion(true);
+        conf.setMapperClass(Map.class);
+        conf.setReducerClass(Reduce.class);
+
+        JobClient.runJob(conf);
     }
 }
 
