@@ -1,6 +1,5 @@
 package org.pooledtimeseries.cartesian;
 
-
 import java.io.IOException;
 
 import org.apache.hadoop.io.Text;
@@ -12,7 +11,7 @@ import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.join.CompositeInputSplit;
 import org.apache.hadoop.util.ReflectionUtils;
 
-public  class CartesianRecordReader<K1, V1, K2, V2> implements RecordReader<Text, Text> {
+public class CartesianRecordReader<K1, V1, K2, V2> implements RecordReader<Text, Text> {
 
 	// Record readers to get key value pairs
 	private RecordReader leftRR = null, rightRR = null;
@@ -22,6 +21,10 @@ public  class CartesianRecordReader<K1, V1, K2, V2> implements RecordReader<Text
 	private JobConf rightConf;
 	private InputSplit rightIS;
 	private Reporter rightReporter;
+	// if left and right are same splits this flag is set
+	// It's used to avoid repeated pairs
+	// for l=1,2 r =1,2 pair=11,12,22
+	private boolean pairWithItself;
 
 	// Helper variables
 	private K1 lkey;
@@ -29,6 +32,7 @@ public  class CartesianRecordReader<K1, V1, K2, V2> implements RecordReader<Text
 	private K2 rkey;
 	private V2 rvalue;
 	private boolean goToNextLeft = true, alldone = false;
+	private int rightShiftCount = 1;
 
 	/**
 	 * Creates a new instance of the CartesianRecordReader
@@ -82,7 +86,7 @@ public  class CartesianRecordReader<K1, V1, K2, V2> implements RecordReader<Text
 	}
 
 	public boolean next(Text key, Text value) throws IOException {
-
+		System.out.println(this.pairWithItself);
 		do {
 			// If we are to go to the next left key/value pair
 			if (goToNextLeft) {
@@ -94,18 +98,31 @@ public  class CartesianRecordReader<K1, V1, K2, V2> implements RecordReader<Text
 				} else {
 					// If we aren't done, set the value to the key and set
 					// our flags
-					key.set(lvalue.toString());
 					goToNextLeft = alldone = false;
 
 					// Reset the right record reader
 					this.rightRR = this.rightFIF.getRecordReader(this.rightIS, this.rightConf, this.rightReporter);
 				}
+
+				if (this.pairWithItself) {
+					// shifting right data set to avoid repeated pairs
+					// we consider a,b == b,a
+					for (int i = 0; i < rightShiftCount; i++) {
+						rightRR.next(rkey, rvalue);
+					}
+					rightShiftCount++;
+				}
 			}
 
 			// Read the next key value pair from the right data set
 			if (rightRR.next(rkey, rvalue)) {
-				// If success, set the value
-				value.set(rvalue.toString());
+				// If success, set key and value for left and right splits
+				key.set(lkey.toString() + "~" + rkey.toString());
+				value.set(lvalue.toString() + "~" + rvalue.toString());
+				// This assumes that key will always be unique among all splits
+				if (lkey.toString().equals(rkey.toString())) {
+					this.pairWithItself = true;
+				}
 			} else {
 				// Otherwise, this right data set is complete
 				// and we should go to the next left pair
@@ -116,6 +133,11 @@ public  class CartesianRecordReader<K1, V1, K2, V2> implements RecordReader<Text
 			// pairs from the right data set
 		} while (goToNextLeft);
 
+		if (alldone) {
+			// reset shift counter
+			rightShiftCount = 1;
+			this.pairWithItself = false;
+		}
 		// Return true if a key/value pair was read, false otherwise
 		return !alldone;
 	}
