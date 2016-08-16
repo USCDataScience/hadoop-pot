@@ -6,7 +6,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
@@ -14,11 +13,11 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
-class FullFileRecordReader extends RecordReader<Text, BytesWritable> {
+class FullFileRecordReader extends RecordReader<Text, Text> {
 	private static final byte[] VECTOR_SEPERATOR = "|".getBytes();
 	private FileSplit fileSplit;
 	private Configuration conf;
-	private BytesWritable value = new BytesWritable();
+	private Text value = new Text();
 	private Text key = new Text();
 
 	private boolean processed = false;
@@ -45,7 +44,7 @@ class FullFileRecordReader extends RecordReader<Text, BytesWritable> {
 			System.arraycopy(VECTOR_SEPERATOR, 0, contents, ofBytes.length, VECTOR_SEPERATOR.length);
 			System.arraycopy(hogBytes, 0, contents, ofBytes.length + VECTOR_SEPERATOR.length, hogBytes.length);
 			
-			value.set(contents, 0, contents.length);
+			value.set(contents);
 			key.set(fileSplit.getPath().toString());
 			processed = true;
 			return true;
@@ -75,7 +74,7 @@ class FullFileRecordReader extends RecordReader<Text, BytesWritable> {
 	}
 
 	@Override
-	public BytesWritable getCurrentValue() throws IOException, InterruptedException {
+	public Text getCurrentValue() throws IOException, InterruptedException {
 		return value;
 	}
 

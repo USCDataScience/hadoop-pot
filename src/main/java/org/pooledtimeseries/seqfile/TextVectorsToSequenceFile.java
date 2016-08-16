@@ -5,7 +5,6 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Job;
@@ -17,7 +16,7 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 
 public class TextVectorsToSequenceFile extends Configured  {
 	static class SequenceFileMapper extends
-			Mapper<Text, BytesWritable, Text, BytesWritable> {
+			Mapper<Text, Text, Text, Text> {
 		private Text filename;
 
 		@Override
@@ -29,7 +28,7 @@ public class TextVectorsToSequenceFile extends Configured  {
 		}
 
 		@Override
-		protected void map(Text key, BytesWritable value,
+		protected void map(Text key, Text value,
 				Context context) throws IOException, InterruptedException {
 			context.write(filename, value);
 		}
@@ -51,7 +50,7 @@ public class TextVectorsToSequenceFile extends Configured  {
 	    FileOutputFormat.setOutputPath(job, new Path(args[1]));
 	    
 		job.setOutputKeyClass(Text.class);
-		job.setOutputValueClass(BytesWritable.class);
+		job.setOutputValueClass(Text.class);
 		job.setMapperClass(SequenceFileMapper.class);
 		job.waitForCompletion(true);
 		
