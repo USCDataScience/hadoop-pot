@@ -19,116 +19,116 @@ package org.pooledtimeseries;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 import java.util.logging.Logger;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FileSystem;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.FileOutputFormat;
+import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.apache.hadoop.mapred.MapReduceBase;
+import org.apache.hadoop.mapred.Mapper;
+import org.apache.hadoop.mapred.OutputCollector;
+import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapred.SequenceFileInputFormat;
+import org.apache.hadoop.mapred.TextOutputFormat;
+import org.pooledtimeseries.cartesian.CartesianInputFormat;
 import org.pooledtimeseries.util.HadoopFileUtil;
+import org.pooledtimeseries.util.ReadSeqFileUtil;
 
 public class SimilarityCalculation {
-	
+
 	private static final Logger LOG = Logger.getLogger(SimilarityCalculation.class.getName());
-  
+
 	static int videos = 0;
 
-	public static class Map extends Mapper<LongWritable, Text, Text, Text> {
-		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException, NumberFormatException {
-			
-			videos++;
-			LOG.info("\n\nProcessing " + videos);
+	public static class Map extends MapReduceBase implements Mapper<Text, Text, Text, Text> {
 
-			Configuration conf = context.getConfiguration();
+		double[] meanDists = null;
+
+		@Override
+		public void configure(JobConf conf) {
+			super.configure(conf);
 			String meanDistsPath = conf.get("meanDistsFilePath");
-
-			String[] videoPaths = value.toString().split(",");
-			ArrayList<double[]> tws = PoT.getTemporalWindows(4);
-			ArrayList<FeatureVector> fvList = new ArrayList<FeatureVector>();
-
-			for (String video : videoPaths) {
-				ArrayList<double[][]> multiSeries = new ArrayList<double[][]>();
-
-				multiSeries.add(PoT.loadTimeSeries(HadoopFileUtil.getInputStreamFromHDFS(video + ".of.txt")));
-                multiSeries.add(PoT.loadTimeSeries(HadoopFileUtil.getInputStreamFromHDFS(video + ".hog.txt")));
-                
-				FeatureVector fv = new FeatureVector();
-				for (int i = 0; i < multiSeries.size(); i++) {
-					fv.feature.add(PoT.computeFeaturesFromSeries(multiSeries.get(i), tws, 1));
-					fv.feature.add(PoT.computeFeaturesFromSeries(multiSeries.get(i), tws, 2));
-					fv.feature.add(PoT.computeFeaturesFromSeries(multiSeries.get(i), tws, 5));
+			List<Double> meanDistsList = new ArrayList<Double>();
+			InputStream in = null;
+			try {		
+				in = HadoopFileUtil.getInputStreamFromHDFS(meanDistsPath);
+				Scanner scin = new Scanner(in) ;
+				while (scin.hasNextDouble()) {
+					meanDistsList.add(scin.nextDouble());
 				}
-				fvList.add(fv);
+				scin.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				if(in !=null){
+					try {
+						in.close();
+					} catch (IOException e) {}
+				}
 			}
 
-			double[] meanDists = new double[fvList.get(0).numDim()];
-			
-			//Get the filesystem - HDFS
-			FileSystem fs = FileSystem.get(URI.create(meanDistsPath), conf);
-			
-			//Open the path mentioned in HDFS
-			FSDataInputStream in = fs.open(new Path(meanDistsPath));
-			
-			String line;
-			int counter = 0;
-			while ((line = in.readLine()) != null) {
-				meanDists[counter] = Double.parseDouble(line);
-				counter++;
-			}
-			in.close();
+			this.meanDists = ArrayUtils.toPrimitive(meanDistsList.toArray(new Double[0]));
+			LOG.info("Loaded meanDist of length - " + meanDists.length);
+		}
 
+		@Override
+		public void map(Text key, Text value, OutputCollector<Text, Text> output, Reporter reporter)
+				throws IOException {
+			videos++;
+			LOG.info("Processing pair - " + key);
+			long startTime = System.currentTimeMillis();
+			
+			String[] videoPaths = ReadSeqFileUtil.getFileNames(key);
+
+			List<FeatureVector> fvList = ReadSeqFileUtil.computeFeatureFromSeries(value);
+			LOG.info("Loaded Time Series for pair in - " + (System.currentTimeMillis() - startTime));
+			
 			double similarity = PoT.kernelDistance(fvList.get(0), fvList.get(1), meanDists);
 
 			File p1 = new File(videoPaths[0]);
 			File p2 = new File(videoPaths[1]);
-			context.write(new Text(p1.getName() + ',' + p2.getName()), new Text(String.valueOf(similarity)));
+			output.collect(new Text(p1.getName() + ',' + p2.getName()), new Text(String.valueOf(similarity)));
+			
+			LOG.info("Completed processing pair - " + key);
+            LOG.info("Time taken to complete job - " + (System.currentTimeMillis() - startTime));
 		}
 	}
 
 	public static void main(String[] args) throws Exception {
 
-		Configuration baseConf = new Configuration();
-		baseConf.set("mapreduce.job.maps", "96");
-		baseConf.set("mapreduce.job.reduces", "0");
-		baseConf.set("mapred.tasktracker.map.tasks.maximum", "96");
-		baseConf.set("meanDistsFilePath", args[2]);
-
 		JobConf conf = new JobConf();
 		System.out.println("Before Map:" + conf.getNumMapTasks());
 		conf.setNumMapTasks(196);
 		System.out.println("After Map:" + conf.getNumMapTasks());
+		conf.setJobName("similarity_calc");
 
-		Job job = Job.getInstance(baseConf);
-		System.out.println("Track: " + baseConf.get("mapred.job.tracker"));
-		System.out.println("Job ID" + job.getJobID());
-		System.out.println("Job Name" + job.getJobName());
-		System.out.println(baseConf.get("mapreduce.job.maps"));
-		job.setJarByClass(SimilarityCalculation.class);
+		conf.set("meanDistsFilePath", args[2]);
 
-		job.setJobName("similarity_calc");
+		System.out.println("Job Name: " + conf.getJobName());
+		conf.setJarByClass(SimilarityCalculation.class);
 
-		job.setOutputKeyClass(Text.class);
-		job.setOutputValueClass(Text.class);
+		conf.setOutputKeyClass(Text.class);
+		conf.setOutputValueClass(Text.class);
 
-		job.setInputFormatClass(TextInputFormat.class);
-		job.setOutputFormatClass(TextOutputFormat.class);
+		conf.setInputFormat(CartesianInputFormat.class);
+		CartesianInputFormat.setLeftInputInfo(conf, SequenceFileInputFormat.class,
+				args[0]);
+		CartesianInputFormat.setRightInputInfo(conf, SequenceFileInputFormat.class,
+				args[0]);
+		
+		conf.setOutputFormat(TextOutputFormat.class);
 
-		FileInputFormat.setInputPaths(job, new Path(args[0]));
-		FileOutputFormat.setOutputPath(job, new Path(args[1]));
+		FileOutputFormat.setOutputPath(conf, new Path(args[1]));
 
-		job.setMapperClass(Map.class);
+		conf.setMapperClass(Map.class);
 
-		job.waitForCompletion(true);
+		JobClient.runJob(conf);
 	}
 }

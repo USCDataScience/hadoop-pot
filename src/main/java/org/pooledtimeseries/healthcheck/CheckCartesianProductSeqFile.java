@@ -19,8 +19,8 @@ import org.apache.hadoop.mapred.TextOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.pooledtimeseries.cartesian.CartesianInputFormat;
 
-@SuppressWarnings({ "rawtypes", "static-access", "unchecked" })
-public class CartesianProductSeqFile {
+
+public class CheckCartesianProductSeqFile {
 
 	public static class CartesianMapper extends MapReduceBase implements Mapper<Text, Text, Text, IntWritable> {
 
@@ -79,7 +79,7 @@ public class CartesianProductSeqFile {
 		}
 
 		// Configure the join type
-		conf.setJarByClass(CartesianProductSeqFile.class);
+		conf.setJarByClass(CheckCartesianProductSeqFile.class);
 
 		conf.setMapperClass(CartesianMapper.class);
 		conf.setReducerClass(CartesianReducer.class);

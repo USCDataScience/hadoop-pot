@@ -17,18 +17,15 @@
 
 package org.pooledtimeseries;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.FileOutputFormat;
@@ -42,48 +39,28 @@ import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.SequenceFileInputFormat;
 import org.apache.hadoop.mapred.TextOutputFormat;
 import org.pooledtimeseries.cartesian.CartesianInputFormat;
-import org.pooledtimeseries.seqfile.FullFileRecordReader;
-import org.pooledtimeseries.util.PoTConstants;
+import org.pooledtimeseries.util.ReadSeqFileUtil;
 
 public class MeanChiSquareDistanceCalculation {
 	private static final Logger LOG = Logger.getLogger(MeanChiSquareDistanceCalculation.class.getName());
 	static int videos=0;
     public static class Map extends MapReduceBase implements Mapper<Text, Text, IntWritable, DoubleWritable> {
     	
-    	
+    	@Override
     	public void map(Text key, Text value, OutputCollector<IntWritable, DoubleWritable> output, Reporter reporter) throws IOException {
         	videos++;    
         	System.out.println(videos);
         	LOG.info("Processing pair - " + key);
-        	long startTime = System.currentTimeMillis(); 
-            String[] videoVectors = value.toString().split(PoTConstants.FILE_SEPERATOR);
-            ArrayList<double[]> tws = PoT.getTemporalWindows(4);
-            ArrayList<FeatureVector> fvList = new ArrayList<FeatureVector>();
-
-            // If we're looking at a pair of videos where the videos are the same
+        	long startTime = System.currentTimeMillis();
+        	
+        	String[] videoFiles = ReadSeqFileUtil.getFileNames(key);
+            
+        	// If we're looking at a pair of videos where the videos are the same
             // we don't include them in the meanChiSquareDistance calculation.
-            if (videoVectors[0].equals(videoVectors[1]))
+            if (videoFiles[0].equals(videoFiles[1]))
                 return;
-
-            for (String video: videoVectors) {
-                ArrayList<double[][]> multiSeries = new ArrayList<double[][]>();
-                
-                long startIoTime = System.currentTimeMillis();
-                String[] vectors = video.split(PoTConstants.VECTOR_SEPERATOR_REGEX);
-                
-                multiSeries.add(PoT.loadTimeSeries(new ByteArrayInputStream(vectors[0].getBytes(StandardCharsets.UTF_8))) );
-                multiSeries.add(PoT.loadTimeSeries(new ByteArrayInputStream(vectors[1].getBytes(StandardCharsets.UTF_8))) );
-                
-                LOG.info("Read both series in - " + (System.currentTimeMillis() - startIoTime));
-                
-                FeatureVector fv = new FeatureVector();
-                for (int i = 0; i < multiSeries.size(); i++) {
-                    fv.feature.add(PoT.computeFeaturesFromSeries(multiSeries.get(i), tws, 1));
-                    fv.feature.add(PoT.computeFeaturesFromSeries(multiSeries.get(i), tws, 2));
-                    fv.feature.add(PoT.computeFeaturesFromSeries(multiSeries.get(i), tws, 5));
-                }
-                fvList.add(fv);
-            }
+            
+            List<FeatureVector> fvList = ReadSeqFileUtil.computeFeatureFromSeries(value);
             
             LOG.info("Loaded Time Series for pair in - " + (System.currentTimeMillis() - startTime));
 
@@ -97,7 +74,7 @@ public class MeanChiSquareDistanceCalculation {
                 ));
             }
             
-            LOG.info("Complated processing pair - " + key);
+            LOG.info("Completed processing pair - " + key);
             LOG.info("Time taken to complete job - " + (System.currentTimeMillis() - startTime));
         }
     }

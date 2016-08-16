@@ -86,7 +86,7 @@ public class CartesianRecordReader<K1, V1, K2, V2> implements RecordReader<Text,
 	}
 
 	public boolean next(Text key, Text value) throws IOException {
-		System.out.println(this.pairWithItself);
+		
 		do {
 			// If we are to go to the next left key/value pair
 			if (goToNextLeft) {
