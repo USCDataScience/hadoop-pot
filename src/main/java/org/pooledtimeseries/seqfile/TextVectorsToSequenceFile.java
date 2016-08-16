@@ -1,6 +1,7 @@
 package org.pooledtimeseries.seqfile;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -17,6 +18,8 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 public class TextVectorsToSequenceFile extends Configured  {
 	static class SequenceFileMapper extends
 			Mapper<Text, Text, Text, Text> {
+		private static final Logger LOG = Logger.getLogger(TextVectorsToSequenceFile.class.getName());
+
 		private Text filename;
 
 		@Override
@@ -30,6 +33,7 @@ public class TextVectorsToSequenceFile extends Configured  {
 		@Override
 		protected void map(Text key, Text value,
 				Context context) throws IOException, InterruptedException {
+			LOG.info("Processing filename- " + filename);
 			context.write(filename, value);
 		}
 	}

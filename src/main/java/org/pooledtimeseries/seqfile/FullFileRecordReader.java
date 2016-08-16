@@ -12,9 +12,11 @@ import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+import org.pooledtimeseries.util.PoTConstants;
 
-class FullFileRecordReader extends RecordReader<Text, Text> {
-	private static final byte[] VECTOR_SEPERATOR = "|".getBytes();
+public class FullFileRecordReader extends RecordReader<Text, Text> {
+	public static final byte[] VECTOR_SEPERATOR = PoTConstants.VECTOR_SEPERATOR.getBytes();
+	
 	private FileSplit fileSplit;
 	private Configuration conf;
 	private Text value = new Text();

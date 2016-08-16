@@ -17,7 +17,9 @@
 
 package org.pooledtimeseries;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.logging.Logger;
@@ -40,34 +42,37 @@ import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.SequenceFileInputFormat;
 import org.apache.hadoop.mapred.TextOutputFormat;
 import org.pooledtimeseries.cartesian.CartesianInputFormat;
-import org.pooledtimeseries.util.HadoopFileUtil;
+import org.pooledtimeseries.seqfile.FullFileRecordReader;
+import org.pooledtimeseries.util.PoTConstants;
 
 public class MeanChiSquareDistanceCalculation {
 	private static final Logger LOG = Logger.getLogger(MeanChiSquareDistanceCalculation.class.getName());
 	static int videos=0;
-    public static class Map extends MapReduceBase implements Mapper<LongWritable, Text, IntWritable, DoubleWritable> {
+    public static class Map extends MapReduceBase implements Mapper<Text, Text, IntWritable, DoubleWritable> {
     	
     	
-    	public void map(LongWritable key, Text value, OutputCollector<IntWritable, DoubleWritable> output, Reporter reporter) throws IOException {
+    	public void map(Text key, Text value, OutputCollector<IntWritable, DoubleWritable> output, Reporter reporter) throws IOException {
         	videos++;    
         	System.out.println(videos);
-        	LOG.info("Processing pair - " + value);
+        	LOG.info("Processing pair - " + key);
         	long startTime = System.currentTimeMillis(); 
-            String[] videoPaths = value.toString().split(",");
+            String[] videoVectors = value.toString().split(PoTConstants.FILE_SEPERATOR);
             ArrayList<double[]> tws = PoT.getTemporalWindows(4);
             ArrayList<FeatureVector> fvList = new ArrayList<FeatureVector>();
 
             // If we're looking at a pair of videos where the videos are the same
             // we don't include them in the meanChiSquareDistance calculation.
-            if (videoPaths[0].equals(videoPaths[1]))
+            if (videoVectors[0].equals(videoVectors[1]))
                 return;
 
-            for (String video: videoPaths) {
+            for (String video: videoVectors) {
                 ArrayList<double[][]> multiSeries = new ArrayList<double[][]>();
                 
                 long startIoTime = System.currentTimeMillis();
-                multiSeries.add(PoT.loadTimeSeries(HadoopFileUtil.getInputStreamFromHDFS(video + ".of.txt")));
-                multiSeries.add(PoT.loadTimeSeries(HadoopFileUtil.getInputStreamFromHDFS(video + ".hog.txt")));
+                String[] vectors = video.split(PoTConstants.VECTOR_SEPERATOR_REGEX);
+                
+                multiSeries.add(PoT.loadTimeSeries(new ByteArrayInputStream(vectors[0].getBytes(StandardCharsets.UTF_8))) );
+                multiSeries.add(PoT.loadTimeSeries(new ByteArrayInputStream(vectors[1].getBytes(StandardCharsets.UTF_8))) );
                 
                 LOG.info("Read both series in - " + (System.currentTimeMillis() - startIoTime));
                 
@@ -92,7 +97,7 @@ public class MeanChiSquareDistanceCalculation {
                 ));
             }
             
-            LOG.info("Complated processing pair - " + value);
+            LOG.info("Complated processing pair - " + key);
             LOG.info("Time taken to complete job - " + (System.currentTimeMillis() - startTime));
         }
     }
