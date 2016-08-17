@@ -19,16 +19,20 @@ MAIN_PTS_DIR=$POOLED_TIME_SERIES_HOME/../..
 HDFS_PTS_DIR=/user/pts/output
 
 TIME_SERIES_INPUT=$HDFS_PTS_DIR/OpticalAndGradientTimeSeriesInput
-SIMILARITY_INPUT=$HDFS_PTS_DIR/MeanChiSquareAndSimilarityInput
+SIMILARITY_INPUT=$HDFS_PTS_DIR/SequenceVideoVectors
 
 PTS_TIME_SERIES_INPUT=$POOLED_TIME_SERIES_HOME/OpticalAndGradientTimeSeriesInput
 PTS_SIMILARITY_INPUT=$POOLED_TIME_SERIES_HOME/MeanChiSquareAndSimilarityInput
 PTS_MEAN_CHI_OUTPUT=$POOLED_TIME_SERIES_HOME/MeanChiSquareOutput
-echo "initialized"
+
+echo "*****************"
+echo "initialized, removing previous input directories"
+hadoop fs -rm -r $TIME_SERIES_INPUT
+hadoop fs -rm -r $SIMILARITY_INPUT
+echo "*****************"
 
 hadoop fs -mkdir $HDFS_PTS_DIR
 hadoop fs -mkdir $TIME_SERIES_INPUT
-hadoop fs -mkdir $SIMILARITY_INPUT
 mkdir $PTS_TIME_SERIES_INPUT
 mkdir $PTS_SIMILARITY_INPUT
 mkdir $PTS_MEAN_CHI_OUTPUT
@@ -44,12 +48,6 @@ echo "Checking- " $PTS_TIME_SERIES_INPUT/original_videos.txt
 ls -lrt $PTS_TIME_SERIES_INPUT/original_videos.txt
 echo "*****************"
 
-python $MAIN_PTS_DIR/src/main/bin/generate_video_pairs.py $PTS_TIME_SERIES_INPUT $PTS_SIMILARITY_INPUT
-
-echo "*****************"
-echo "Finished executing generate_video_pairs.py Checking- " $PTS_SIMILARITY_INPUT/videos.txt
-ls -lrt $PTS_SIMILARITY_INPUT/videos.txt
-echo "*****************"
 
 mkdir $PTS_TIME_SERIES_INPUT/split
 split -l 1000 $PTS_TIME_SERIES_INPUT/original_videos.txt $PTS_TIME_SERIES_INPUT/split/original_videos.txt_
@@ -114,10 +112,12 @@ echo "Removed batch outputs after copying to : " $2
 echo "*****************"
 
 
-hadoop fs -put $PTS_SIMILARITY_INPUT/videos.txt $SIMILARITY_INPUT
+
+# Converting of.txt and hog.txt into a single sequence file 
+hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar org.pooledtimeseries.seqfile.TextVectorsToSequenceFile $2 $SIMILARITY_INPUT
 echo "*****************"
-echo "video pairs coiped to hdfs"
-hadoop fs -ls $SIMILARITY_INPUT
+echo "Completed sequence file generation"
+hadoop fs -ls $HDFS_PTS_DIR/SequenceVideoVectors
 echo "*****************"
 
 
@@ -142,5 +142,4 @@ hadoop fs -getmerge $HDFS_PTS_DIR/SimilarityCalc $PTS_SIMILARITY_INPUT/similarit
 
 echo "Output in - " $PTS_SIMILARITY_INPUT/similarity_calc.txt
 
-hadoop fs -rm -r $TIME_SERIES_INPUT
-hadoop fs -rm -r $SIMILARITY_INPUT
+
