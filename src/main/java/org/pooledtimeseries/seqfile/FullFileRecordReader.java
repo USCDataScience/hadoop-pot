@@ -23,6 +23,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
@@ -30,13 +31,15 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.pooledtimeseries.util.PoTConstants;
+import org.pooledtimeseries.util.PoTSerialiser;
+import org.pooledtimeseries.util.ReadSeqFileUtil;
 
-public class FullFileRecordReader extends RecordReader<Text, Text> {
+public class FullFileRecordReader extends RecordReader<Text, BytesWritable> {
 	public static final byte[] VECTOR_SEPERATOR = PoTConstants.VECTOR_SEPERATOR.getBytes();
 	
 	private FileSplit fileSplit;
 	private Configuration conf;
-	private Text value = new Text();
+	private BytesWritable value = new BytesWritable();
 	private Text key = new Text();
 
 	private boolean processed = false;
@@ -63,7 +66,9 @@ public class FullFileRecordReader extends RecordReader<Text, Text> {
 			System.arraycopy(VECTOR_SEPERATOR, 0, contents, ofBytes.length, VECTOR_SEPERATOR.length);
 			System.arraycopy(hogBytes, 0, contents, ofBytes.length + VECTOR_SEPERATOR.length, hogBytes.length);
 			
-			value.set(contents);
+			byte[] listFeatures = PoTSerialiser.getBytes(ReadSeqFileUtil.computeFeatureFromSeries(new Text(contents)) );
+			
+			value.set(listFeatures, 0, listFeatures.length );
 			key.set(fileSplit.getPath().toString());
 			processed = true;
 			return true;
@@ -93,7 +98,7 @@ public class FullFileRecordReader extends RecordReader<Text, Text> {
 	}
 
 	@Override
-	public Text getCurrentValue() throws IOException, InterruptedException {
+	public BytesWritable getCurrentValue() throws IOException, InterruptedException {
 		return value;
 	}
 

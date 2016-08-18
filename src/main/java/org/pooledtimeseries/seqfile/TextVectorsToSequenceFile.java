@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Job;
@@ -34,7 +35,7 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 
 public class TextVectorsToSequenceFile extends Configured  {
 	static class SequenceFileMapper extends
-			Mapper<Text, Text, Text, Text> {
+			Mapper<Text, BytesWritable, Text, BytesWritable> {
 		private static final Logger LOG = Logger.getLogger(TextVectorsToSequenceFile.class.getName());
 
 		private Text filename;
@@ -48,7 +49,7 @@ public class TextVectorsToSequenceFile extends Configured  {
 		}
 
 		@Override
-		protected void map(Text key, Text value,
+		protected void map(Text key, BytesWritable value,
 				Context context) throws IOException, InterruptedException {
 			LOG.info("Processing filename- " + filename);
 			context.write(filename, value);
@@ -71,7 +72,7 @@ public class TextVectorsToSequenceFile extends Configured  {
 	    FileOutputFormat.setOutputPath(job, new Path(args[1]));
 	    
 		job.setOutputKeyClass(Text.class);
-		job.setOutputValueClass(Text.class);
+		job.setOutputValueClass(BytesWritable.class);
 		job.setMapperClass(SequenceFileMapper.class);
 		job.waitForCompletion(true);
 		

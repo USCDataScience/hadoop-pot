@@ -27,6 +27,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.FileOutputFormat;
 import org.apache.hadoop.mapred.JobClient;
@@ -39,6 +40,7 @@ import org.apache.hadoop.mapred.SequenceFileInputFormat;
 import org.apache.hadoop.mapred.TextOutputFormat;
 import org.pooledtimeseries.cartesian.CartesianInputFormat;
 import org.pooledtimeseries.util.HadoopFileUtil;
+import org.pooledtimeseries.util.PoTSerialiser;
 import org.pooledtimeseries.util.ReadSeqFileUtil;
 
 public class SimilarityCalculation {
@@ -47,7 +49,7 @@ public class SimilarityCalculation {
 
 	static int videos = 0;
 
-	public static class Map extends MapReduceBase implements Mapper<Text, Text, Text, Text> {
+	public static class Map extends MapReduceBase implements Mapper<Text, BytesWritable, Text, Text> {
 
 		double[] meanDists = null;
 
@@ -79,7 +81,7 @@ public class SimilarityCalculation {
 		}
 
 		@Override
-		public void map(Text key, Text value, OutputCollector<Text, Text> output, Reporter reporter)
+		public void map(Text key, BytesWritable value, OutputCollector<Text, Text> output, Reporter reporter)
 				throws IOException {
 			videos++;
 			LOG.info("Processing pair - " + key);
@@ -87,7 +89,7 @@ public class SimilarityCalculation {
 			
 			String[] videoPaths = ReadSeqFileUtil.getFileNames(key);
 
-			List<FeatureVector> fvList = ReadSeqFileUtil.computeFeatureFromSeries(value);
+			List<FeatureVector> fvList = (List<FeatureVector>) PoTSerialiser.getObject(value.getBytes()) ;
 			LOG.info("Loaded Time Series for pair in - " + (System.currentTimeMillis() - startTime));
 			
 			double similarity = PoT.kernelDistance(fvList.get(0), fvList.get(1), meanDists);

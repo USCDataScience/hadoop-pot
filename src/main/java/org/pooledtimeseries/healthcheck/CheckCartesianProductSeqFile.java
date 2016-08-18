@@ -19,9 +19,11 @@ package org.pooledtimeseries.healthcheck;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.List;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.JobConf;
@@ -34,39 +36,33 @@ import org.apache.hadoop.mapred.RunningJob;
 import org.apache.hadoop.mapred.SequenceFileInputFormat;
 import org.apache.hadoop.mapred.TextOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
+import org.pooledtimeseries.FeatureVector;
 import org.pooledtimeseries.cartesian.CartesianInputFormat;
+import org.pooledtimeseries.util.PoTSerialiser;
 
 
 public class CheckCartesianProductSeqFile {
 
-	public static class CartesianMapper extends MapReduceBase implements Mapper<Text, Text, Text, IntWritable> {
+	public static class CartesianMapper extends MapReduceBase implements Mapper<Text, BytesWritable, Text, IntWritable> {
 
 		private Text simkey = new Text("simkey");
 		private Text diskey = new Text("diskey");
 		private static final IntWritable one = new IntWritable(1);
 
-		public void map(Text key, Text value, OutputCollector<Text, IntWritable> output, Reporter reporter)
+		public void map(Text key, BytesWritable value, OutputCollector<Text, IntWritable> output, Reporter reporter)
 				throws IOException {
 			// System.out.println(value);
 			System.out.println(key);
 			System.out.println("");
-			String[] values = value.toString().split("~");
-			String leftVal[] = values[0].split("\\|");
-			String rightVal = values[1];
 			
-			System.out.println("All- "+ values.length);
-			System.out.println("Left -" + leftVal.length);
-			System.out.println("Left[0] -" + leftVal[0].length());
-			System.out.println("Left[1] -" + leftVal[1].length());
-			System.out.println("Right -" + rightVal.length());
+			System.out.println("All- "+ PoTSerialiser.getObject(value.getBytes()) );
+			System.out.println("Size- "+ ((List<FeatureVector>) PoTSerialiser.getObject(value.getBytes()) ).size() );
 			
 			System.out.println();
 			// If the two values are equal add one to output
-			if (leftVal.equals(rightVal)) {
-				output.collect(simkey, one);
-			} else {
-				output.collect(diskey, one);
-			}
+			
+			output.collect(simkey, one);
+			
 		}
 	}
 

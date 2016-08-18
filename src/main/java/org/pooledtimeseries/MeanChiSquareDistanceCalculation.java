@@ -27,6 +27,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.FileOutputFormat;
 import org.apache.hadoop.mapred.JobClient;
@@ -39,15 +40,16 @@ import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.SequenceFileInputFormat;
 import org.apache.hadoop.mapred.TextOutputFormat;
 import org.pooledtimeseries.cartesian.CartesianInputFormat;
+import org.pooledtimeseries.util.PoTSerialiser;
 import org.pooledtimeseries.util.ReadSeqFileUtil;
 
 public class MeanChiSquareDistanceCalculation {
 	private static final Logger LOG = Logger.getLogger(MeanChiSquareDistanceCalculation.class.getName());
 	static int videos=0;
-    public static class Map extends MapReduceBase implements Mapper<Text, Text, IntWritable, DoubleWritable> {
+    public static class Map extends MapReduceBase implements Mapper<Text, BytesWritable, IntWritable, DoubleWritable> {
     	
     	@Override
-    	public void map(Text key, Text value, OutputCollector<IntWritable, DoubleWritable> output, Reporter reporter) throws IOException {
+    	public void map(Text key, BytesWritable value, OutputCollector<IntWritable, DoubleWritable> output, Reporter reporter) throws IOException {
         	videos++;    
         	System.out.println(videos);
         	LOG.info("Processing pair - " + key);
@@ -60,7 +62,7 @@ public class MeanChiSquareDistanceCalculation {
             if (videoFiles[0].equals(videoFiles[1]))
                 return;
             
-            List<FeatureVector> fvList = ReadSeqFileUtil.computeFeatureFromSeries(value);
+            List<FeatureVector> fvList = (List<FeatureVector>) PoTSerialiser.getObject(value.getBytes()) ;
             
             LOG.info("Loaded Time Series for pair in - " + (System.currentTimeMillis() - startTime));
 
@@ -93,8 +95,6 @@ public class MeanChiSquareDistanceCalculation {
 
             output.collect(null, new DoubleWritable(sum / (double) count));
         }
-
-		
 
     }
 

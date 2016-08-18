@@ -18,7 +18,9 @@
 package org.pooledtimeseries.cartesian;
 
 import java.io.IOException;
+import java.util.List;
 
+import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.FileInputFormat;
 import org.apache.hadoop.mapred.InputSplit;
@@ -27,14 +29,17 @@ import org.apache.hadoop.mapred.RecordReader;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.join.CompositeInputSplit;
 import org.apache.hadoop.util.ReflectionUtils;
+import org.pooledtimeseries.FeatureVector;
+import org.pooledtimeseries.util.PoTSerialiser;
 
-public class CartesianRecordReader<K1, V1, K2, V2> implements RecordReader<Text, Text> {
+public class CartesianRecordReader<K1 extends Text, V1 extends BytesWritable, K2 extends Text, V2 extends BytesWritable> 
+implements RecordReader<Text, BytesWritable> {
 
 	// Record readers to get key value pairs
-	private RecordReader leftRR = null, rightRR = null;
+	private RecordReader<Text,BytesWritable>  leftRR = null, rightRR = null;
 
 	// Store configuration to re-create the right record reader
-	private FileInputFormat rightFIF;
+	private FileInputFormat<Text, BytesWritable> rightFIF;
 	private JobConf rightConf;
 	private InputSplit rightIS;
 	private Reporter rightReporter;
@@ -66,7 +71,7 @@ public class CartesianRecordReader<K1, V1, K2, V2> implements RecordReader<Text,
 
 		try {
 			// Create left record reader
-			FileInputFormat leftFIF = (FileInputFormat) ReflectionUtils
+			FileInputFormat<Text, BytesWritable> leftFIF = (FileInputFormat) ReflectionUtils
 					.newInstance(Class.forName(conf.get(CartesianInputFormat.LEFT_INPUT_FORMAT)), conf);
 
 			leftRR = leftFIF.getRecordReader(split.get(0), conf, reporter);
@@ -90,19 +95,23 @@ public class CartesianRecordReader<K1, V1, K2, V2> implements RecordReader<Text,
 		rvalue = (V2) this.rightRR.createValue();
 	}
 
+	@Override
 	public Text createKey() {
 		return new Text();
 	}
-
-	public Text createValue() {
-		return new Text();
+	
+	@Override
+	public BytesWritable createValue() {
+		return new BytesWritable();
 	}
-
+	
+	@Override
 	public long getPos() throws IOException {
 		return leftRR.getPos();
 	}
 
-	public boolean next(Text key, Text value) throws IOException {
+	@Override
+	public boolean next(Text key, BytesWritable value) throws IOException {
 		
 		do {
 			// If we are to go to the next left key/value pair
@@ -135,7 +144,11 @@ public class CartesianRecordReader<K1, V1, K2, V2> implements RecordReader<Text,
 			if (rightRR.next(rkey, rvalue)) {
 				// If success, set key and value for left and right splits
 				key.set(lkey.toString() + "~" + rkey.toString());
-				value.set(lvalue.toString() + "~" + rvalue.toString());
+				List<FeatureVector> featureList = (List<FeatureVector>)PoTSerialiser.getObject(lvalue.getBytes());
+				featureList.addAll((List<FeatureVector>) PoTSerialiser.getObject(rvalue.getBytes()));
+				byte[] featureListBytes = PoTSerialiser.getBytes(featureList);
+				value.set(featureListBytes, 0, featureListBytes.length);
+				
 				// This assumes that key will always be unique among all splits
 				if (lkey.toString().equals(rkey.toString())) {
 					this.pairWithItself = true;

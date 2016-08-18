@@ -17,9 +17,13 @@
 
 package org.pooledtimeseries;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class FeatureVector {
+public class FeatureVector implements Serializable{
+	
+	private static final long serialVersionUID = 1L;
+	
 	public ArrayList<ArrayList<Double>> feature;
 	
 	public FeatureVector() {
