@@ -20,11 +20,7 @@ package org.pooledtimeseries.seqfile;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
@@ -54,19 +50,11 @@ public class FullFileRecordReader extends RecordReader<Text, BytesWritable> {
 	public boolean nextKeyValue() throws IOException, InterruptedException {
 		if (!processed) {
 
-			Path files[] = new Path[2];
-			files[0] = new Path(fileSplit.getPath().toString() + ".of.txt");
-			files[1] = new Path(fileSplit.getPath().toString() + ".hog.txt");
+			String files[] = new String[2];
+			files[0] = fileSplit.getPath().toString() + ".of.txt";
+			files[1] = fileSplit.getPath().toString() + ".hog.txt";
 
-			byte[] ofBytes = readBytesFromFile(files[0]);
-			byte[] hogBytes = readBytesFromFile(files[1]);
-			byte[] contents = new byte[ofBytes.length + hogBytes.length + VECTOR_SEPERATOR.length];
-			
-			System.arraycopy(ofBytes, 0, contents, 0, ofBytes.length);
-			System.arraycopy(VECTOR_SEPERATOR, 0, contents, ofBytes.length, VECTOR_SEPERATOR.length);
-			System.arraycopy(hogBytes, 0, contents, ofBytes.length + VECTOR_SEPERATOR.length, hogBytes.length);
-			
-			byte[] listFeatures = PoTSerialiser.getBytes(ReadSeqFileUtil.computeFeatureFromSeries(new Text(contents)) );
+			byte[] listFeatures = PoTSerialiser.getBytes(ReadSeqFileUtil.computeFeatureFromSeries(files) );
 			
 			value.set(listFeatures, 0, listFeatures.length );
 			key.set(fileSplit.getPath().toString());
@@ -76,21 +64,6 @@ public class FullFileRecordReader extends RecordReader<Text, BytesWritable> {
 		return false;
 	}
 
-	private byte[] readBytesFromFile(Path path) throws IOException, InterruptedException {
-		FileSystem fs = path.getFileSystem(conf);
-		FSDataInputStream in = null;
-		try {
-			in = fs.open(path);
-			
-			byte[] contentFile = new byte[(int) fs.getContentSummary(path).getLength()];
-			
-			IOUtils.readFully(in, contentFile, 0, contentFile.length);
-			return contentFile;
-		} finally {
-			IOUtils.closeStream(in);
-		}
-
-	}
 
 	@Override
 	public Text getCurrentKey() throws IOException, InterruptedException {

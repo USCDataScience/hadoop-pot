@@ -144,6 +144,8 @@ implements RecordReader<Text, BytesWritable> {
 			if (rightRR.next(rkey, rvalue)) {
 				// If success, set key and value for left and right splits
 				key.set(lkey.toString() + "~" + rkey.toString());
+				// Merge FeatureVector of both videos
+				// Order is important and should be same as order of key
 				List<FeatureVector> featureList = (List<FeatureVector>)PoTSerialiser.getObject(lvalue.getBytes());
 				featureList.addAll((List<FeatureVector>) PoTSerialiser.getObject(rvalue.getBytes()));
 				byte[] featureListBytes = PoTSerialiser.getBytes(featureList);
