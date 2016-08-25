@@ -593,11 +593,8 @@ public class PoT {
     }
   }
 
-	public static double[][] loadTimeSeries(InputStream in) {
+	public static double[][] loadTimeSeries(Scanner scin) {
 		double[][] series = new double[1][1];
-
-		Scanner scin = new Scanner(in);
-
 		int num_frames = scin.nextInt();
 		int dim = scin.nextInt();
 
@@ -608,14 +605,23 @@ public class PoT {
 				series[i][j] = scin.nextDouble();
 			}
 		}
-		
 		scin.close();
-		try {
-			in.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		
 		return series;
+	}
+	
+	public static double[][] loadTimeSeries(InputStream in) {
+		
+		Scanner scin = new Scanner(in);
+		try{
+			return loadTimeSeries(scin);
+		}finally{
+			try {
+				in.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 
 	}
 

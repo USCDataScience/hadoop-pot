@@ -15,21 +15,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
+import matplotlib
+matplotlib.use('Agg')
+
+import numpy as np
+import pylab as pl
 import sys
 
-with open(os.path.join(sys.argv[1], 'original_videos.txt')) as in_file:
-    videos = in_file.readlines()
+pl.ioff()
 
-video_counts = len(videos)
+path_to_sim_mat = sys.argv[1]
+num_videos = int(sys.argv[2])
+print path_to_sim_mat
+print num_videos
 
-with open(os.path.join(sys.argv[2], 'videos.txt'), 'w') as out_file:
-    for i in range(video_counts):
-        for j in range(i, video_counts):
-            f = videos[i].strip()
-            one = f.split(' ')
-            first_video = one[len(one)-1]
-            s = videos[j].strip()
-            two = s.split(' ') 
-            second_video = two[len(two)-1]
-            out_file.write(first_video + ',' + second_video + '\n')
+# load data from formatted_similarity_calc.csv
+# skip header
+# skip first column so usecols=range(1 , num_videos),
+# paint only upper half filling_values=0)
+data = np.genfromtxt(path_to_sim_mat,
+                  delimiter=",", skip_header=1, usecols=range(1 , num_videos+1),
+                  filling_values=0)
+
+print "Data loaded"
+
+#use single color blue 
+pl.imshow(data, cmap=pl.cm.Blues, interpolation="nearest")
+
+#show color scale
+pl.colorbar()
+
+# tpggle to pl.show() for just viewing image
+pl.savefig('similarity_heatmap.png')
+print "saved in similarity_heatmap.png"
