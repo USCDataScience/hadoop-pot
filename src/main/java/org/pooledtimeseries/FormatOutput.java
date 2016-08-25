@@ -130,7 +130,7 @@ public class FormatOutput {
 		if (indexOfvid1 < indexOfvid2) {
 			resultMatrix[indexOfvid1][indexOfvid2]=score;
 		} else {
-			//if equql score will be one anyway
+			//equal score will be one anyway
 			resultMatrix[indexOfvid2][indexOfvid1]=score;
 		}
 
