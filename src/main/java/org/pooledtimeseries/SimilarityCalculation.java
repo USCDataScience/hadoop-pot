@@ -36,7 +36,6 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
-import org.opencv.core.Core;
 import org.pooledtimeseries.util.HadoopFileUtil;
 
 public class SimilarityCalculation {
@@ -61,17 +60,9 @@ public class SimilarityCalculation {
 			for (String video : videoPaths) {
 				ArrayList<double[][]> multiSeries = new ArrayList<double[][]>();
 
-				File ofCachePath = new HadoopFileUtil().copyToTempDir(video + ".of.txt");
-				File hogCachePath = new HadoopFileUtil().copyToTempDir(video + ".hog.txt");
+				multiSeries.add(PoT.loadTimeSeries(HadoopFileUtil.getInputStreamFromHDFS(video + ".of.txt")));
+                multiSeries.add(PoT.loadTimeSeries(HadoopFileUtil.getInputStreamFromHDFS(video + ".hog.txt")));
                 
-				double[][] series1 = PoT.loadTimeSeries(ofCachePath.toPath());
-				double[][] series2 = PoT.loadTimeSeries(hogCachePath.toPath());
-				
-				hogCachePath.delete();
-				ofCachePath.delete();
-				multiSeries.add(series1);
-				multiSeries.add(series2);
-
 				FeatureVector fv = new FeatureVector();
 				for (int i = 0; i < multiSeries.size(); i++) {
 					fv.feature.add(PoT.computeFeaturesFromSeries(multiSeries.get(i), tws, 1));
@@ -106,7 +97,6 @@ public class SimilarityCalculation {
 	}
 
 	public static void main(String[] args) throws Exception {
-		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
 		Configuration baseConf = new Configuration();
 		baseConf.set("mapreduce.job.maps", "96");

@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
@@ -38,24 +39,20 @@ import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.lib.MultipleTextOutputFormat;
 import org.opencv.core.Core;
-import org.pooledtimeseries.util.ClassScope;
 import org.pooledtimeseries.util.HadoopFileUtil;
+import org.pooledtimeseries.util.PoTUtil;
 
 public class GradientTimeSeries {
-	private static final Logger LOG = Logger.getLogger(SimilarityCalculation.class.getName());
+	private static final Logger LOG = Logger.getLogger(GradientTimeSeries.class.getName());
 
     public static class Map extends MapReduceBase implements Mapper<LongWritable, Text, Text, Text> {
+    	@Override
+    	public void configure(JobConf job) {
+    		super.configure(job);
+    		PoTUtil.loadOpenCV();
+    	}
     	
         public void map(LongWritable key, Text value, OutputCollector<Text, Text> output, Reporter reporter) throws IOException {
-
-        	if (!ClassScope.isLibraryLoaded(Core.NATIVE_LIBRARY_NAME)) {
-        		LOG.info("Trying to load - " + Core.NATIVE_LIBRARY_NAME);
-        		try{
-        			System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-        		}catch (java.lang.UnsatisfiedLinkError e){
-        			System.load("/mnt/apps/opencv-2.4.11/release/lib/libopencv_java2411.so");
-        		} 
-        	}
         	
             try {
             	File tempFile = new HadoopFileUtil().copyToTempDir(value.toString());
@@ -64,7 +61,9 @@ public class GradientTimeSeries {
                 
                 String ofVector = saveVectors(series1);
                 output.collect(value, new Text(ofVector));
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            	LOG.log(Level.SEVERE, "Exception while calling PoT.getGradientTimeSeries", e);
+            }
         }
 
         private static String saveVectors(double[][] vectors) {

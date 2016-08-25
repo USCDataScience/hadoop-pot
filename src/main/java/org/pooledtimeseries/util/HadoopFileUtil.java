@@ -20,6 +20,7 @@ package org.pooledtimeseries.util;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.Arrays;
@@ -73,5 +74,10 @@ public class HadoopFileUtil {
 		LOG.info("Available files - " + Arrays.asList(tempDir.listFiles()) );
 		
 		return new File(tempDir.getAbsolutePath() + "/" + videoPath.getName());
+	}
+	
+	public static InputStream getInputStreamFromHDFS(String pathToHDFS) throws IOException{
+		Path videoPath = new Path(pathToHDFS.toString());
+		return videoPath.getFileSystem(new Configuration()).open(videoPath);
 	}
 }
