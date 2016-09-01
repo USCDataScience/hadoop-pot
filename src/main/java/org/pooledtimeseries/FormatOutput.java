@@ -26,6 +26,7 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
 import java.util.List;
 
 import com.google.common.base.Charsets;
@@ -109,6 +110,8 @@ public class FormatOutput {
 	 */
 	private static void fillSimLineInResult(String simLine, String[][] resultMatrix, List<String> videoList) {
 
+		DecimalFormat df = new DecimalFormat("0.00");
+
 		String score = "";
 		String vid1 = "";
 		String vid2 = "";
@@ -118,7 +121,8 @@ public class FormatOutput {
 		{
 			// scoped under a brace to limit scope of temp variables
 			String[] pairAndScore = simLine.split("\t");
-			score = pairAndScore[1];
+			
+			score = df.format(Double.parseDouble(pairAndScore[1]) );
 			String[] pair = pairAndScore[0].split(",");
 			vid1 = pair[0];
 			vid2 = pair[1];
