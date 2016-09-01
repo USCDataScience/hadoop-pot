@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html ng-app="">
+<head>
+<script
+	src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.15/angular.min.js"></script>
+<script src="js/dashboard.js"></script>
+<link rel="stylesheet" href="css/dashboard.css" />
+</head>
+<body ng-controller="myCtrl">
+	<div id="divID">
+		<table>
+			<tr ng-repeat="x in data track by $index">
+				<td ng-repeat="y in x track by $index"
+					ng-click="showVideos($parent.$index, $index, y)">{{ y }}</td>
+			</tr>
+		</table>
+	</div>
+	<div>
+	<b>Score - {{score}}</b>
+		<table>
+			<tr>
+				<td>{{ video1 }}</td>
+				<td>{{ video2 }}</td>
+			</tr>
+			<tr>
+				<td><video ng-model="video1" width="320" height="240" controls>
+						<source ng-src="{{ video1 }}" type="video/mp4">
+						Your browser does not support the video tag.
+					</video></td>
+				<td><video ng-model="video2" width="320" height="240" controls>
+						<source ng-src="{{ video2 }}" type="video/mp4">
+						Your browser does not support the video tag.
+					</video></td>
+			</tr>
+		</table>
+
+	</div>
+</body>
+</html>
