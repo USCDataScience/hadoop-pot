@@ -90,10 +90,12 @@ public class FormatOutput {
 		PrintWriter similarity = new PrintWriter(new FileWriter(outFile,true));
 
 		for(String[] resultRow: resultMatrix){
+			StringBuffer sb = new StringBuffer("");
 			for(String resultCell: resultRow){
 				//if resultCell == null print empty string else value
-				similarity.print( (resultCell == null?"":resultCell) +",");
+				sb.append((resultCell == null?"":resultCell) +",");
 			}
+			similarity.print(sb.substring(0, sb.length()-1));
 			similarity.println();
 			
 		}
@@ -129,7 +131,12 @@ public class FormatOutput {
 			indexOfvid1 = videoList.indexOf(vid1);
 			indexOfvid2 = videoList.indexOf(vid2);
 		}
-
+		
+		//if this video is not present in input list of video skip it from matrix
+		//This is used when we create output for a subset of videos
+		if(indexOfvid2 == -1 || indexOfvid1 == -1) 
+			return;
+		
 		//Fill only upper matrix
 		if (indexOfvid1 < indexOfvid2) {
 			resultMatrix[indexOfvid1][indexOfvid2]=score;
