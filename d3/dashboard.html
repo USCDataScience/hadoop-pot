@@ -1,34 +1,35 @@
 <!DOCTYPE html>
-<html ng-app="">
+<html>
 <head>
 <script
 	src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.15/angular.min.js"></script>
 <script src="js/dashboard.js"></script>
 <link rel="stylesheet" href="css/dashboard.css" />
 </head>
-<body ng-controller="myCtrl">
-	<div id="divID">
+<body ng-app="myApp" ng-controller="myCtrl">
+	<div id="divID" class="upper-div">
+	Min - <input type="text" ng-model="filters.min" ng-init="filters.min=0"> &nbsp;
+	Max - <input type="text" ng-model="filters.max" ng-init="filters.max=1"> &nbsp;
 		<table>
 			<tr ng-repeat="x in data track by $index">
-				<td ng-repeat="y in x track by $index"
-					ng-click="showVideos($parent.$index, $index, y)">{{ y }}</td>
+				<td ng-repeat="y in x track by $index" 
+					style="background: -webkit-linear-gradient(left, #efe3af {{ y | percentage:2 }},#ffffff {{ y | percentage:2 }});"
+					ng-click="showVideos($parent.$index, $index, y)">{{ y | range:filters.min : filters.max }}</td>
 			</tr>
-		</table>
+		</table>&nbsp;&nbsp;&nbsp;&nbsp;
 	</div>
-	<div>
+	<div class = "lower-div">
 	<b>Score - {{score}}</b>
 		<table>
 			<tr>
-				<td>{{ video1 }}</td>
-				<td>{{ video2 }}</td>
+				<td><b>{{videoId1}} - </b>{{ video1 }}</td>
+				<td><b>{{videoId2}} - </b>{{ video2 }}</td>
 			</tr>
 			<tr>
-				<td><video ng-model="video1" width="320" height="240" controls>
-						<source ng-src="{{ video1 }}" type="video/mp4">
+				<td><video id="video1" width="320" height="240" controls muted ng-src="{{ video1 }}" type="video/mp4">
 						Your browser does not support the video tag.
 					</video></td>
-				<td><video ng-model="video2" width="320" height="240" controls>
-						<source ng-src="{{ video2 }}" type="video/mp4">
+				<td><video id="video2" width="320" height="240" controls muted ng-src="{{ video2 }}" type="video/mp4">
 						Your browser does not support the video tag.
 					</video></td>
 			</tr>
