@@ -1,6 +1,6 @@
 table, th, td {
    border: 1px solid black;
-   padding:5px;
+   padding:3px !important;
 }
 table {
    border-collapse: collapse;
@@ -10,14 +10,12 @@ html, body{
     height: 100%;
 }
 .upper-div{
-	height:60%;
 	overflow-y:scroll;
 	overflow-x:scroll;
 	overflow: -moz-scrollbars-vertical; 	
 }
 .lower-div{
-	height:40%;
-	overflow-y:scroll;
+	
 }
 ::-webkit-scrollbar {
   -webkit-appearance: none;
@@ -27,4 +25,7 @@ html, body{
   border-radius: 4px;
   background-color: rgba(0, 0, 0, .5);
   -webkit-box-shadow: 0 0 1px rgba(255, 255, 255, .5);
+}
+ .break-words  {
+    word-break:break-all
 }

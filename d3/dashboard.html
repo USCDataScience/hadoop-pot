@@ -4,38 +4,57 @@
 <script
 	src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.15/angular.min.js"></script>
 <script src="js/dashboard.js"></script>
-<link rel="stylesheet" href="css/dashboard.css" />
-</head>
-<body ng-app="myApp" ng-controller="myCtrl">
-	<div id="divID" class="upper-div">
-	Min - <input type="text" ng-model="filters.min" ng-init="filters.min=0"> &nbsp;
-	Max - <input type="text" ng-model="filters.max" ng-init="filters.max=1"> &nbsp;
-	Click on any cell to view videos!
-		<table>
-			<tr ng-repeat="x in data track by $index">
-				<td ng-repeat="y in x track by $index" 
-					style="background: -webkit-linear-gradient(left, #efe3af {{ y | percentage:2 }},#ffffff {{ y | percentage:2 }});"
-					ng-click="showVideos($parent.$index, $index, y)">{{ y | range:filters.min : filters.max }}</td>
-			</tr>
-		</table>&nbsp;&nbsp;&nbsp;&nbsp;
-	</div>
-	<div class = "lower-div">
-	<b>Score - {{score}}</b>
-		<table>
-			<tr>
-				<td><b>{{videoId1}} - </b>{{ video1 }}</td>
-				<td><b>{{videoId2}} - </b>{{ video2 }}</td>
-			</tr>
-			<tr>
-				<td><video id="video1" width="320" height="240" controls muted ng-src="{{ video1 }}" type="video/mp4">
-						Your browser does not support the video tag.
-					</video></td>
-				<td><video id="video2" width="320" height="240" controls muted ng-src="{{ video2 }}" type="video/mp4">
-						Your browser does not support the video tag.
-					</video></td>
-			</tr>
-		</table>
 
+</head>
+<body ng-app="myApp" ng-controller="myCtrl" class="container-fluid">
+	<div class="row">
+		<div id="divID" class="col-md-9 upper-div">
+			Min - <input type="text" ng-model="filters.min" ng-init="filters.min=0" /> &nbsp; 
+			Max - <input type="text" ng-model="filters.max" ng-init="filters.max=1" /> &nbsp; 
+			Click on any cell to view videos!
+			<table>
+				<tr ng-repeat="x in data track by $index">
+					<td ng-repeat="y in x track by $index"
+						style="background: -webkit-linear-gradient(left, #efe3af {{ y | percentage:2 }},#ffffff {{ y | percentage:2 }});" 
+						ng-click="showVideos($parent.$index, $index, y)">{{ y | range:filters.min : filters.max }}</td>
+				</tr>
+			</table>
+			&nbsp;&nbsp;&nbsp;&nbsp;
+		</div>
+		<div class="col-md-3 lower-div">
+			<b class="row">Score - {{score}}</b>
+			<div class="row well break-words"><b>{{videoId1}} - </b>{{ video1 }}
+			<video id="video1" width="320" height="240" controls muted
+							ng-src="{{ video1 }}" type="video/mp4"> Your browser does
+							not support the video tag.
+						</video></div>
+			<div class="row well break-words"><b>{{videoId2}} - </b>{{ video2 }}
+				<video id="video2" width="320" height="240" controls muted
+							ng-src="{{ video2 }}" type="video/mp4"> Your browser does
+							not support the video tag.
+						</video></div>
+				
+
+		</div>
 	</div>
+	<link rel="stylesheet" href="css/dashboard.css" />
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet"
+		href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+		integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+		crossorigin="anonymous">
+
+	<!-- Optional theme -->
+	<link rel="stylesheet"
+		href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
+		integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp"
+		crossorigin="anonymous">
+
+	<!-- Latest compiled and minified JavaScript 
+	<script
+		src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+		integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+		crossorigin="anonymous"></script>-->
+
 </body>
 </html>
