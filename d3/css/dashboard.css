@@ -29,3 +29,8 @@ html, body{
  .break-words  {
     word-break:break-all
 }
+
+.well{
+	padding: 5px;
+	margin-bottom: 2px;
+}
