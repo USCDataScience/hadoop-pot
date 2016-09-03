@@ -68,27 +68,28 @@ function ($scope, $http) {
 	}
 	
 	$scope.recordFeedback = function(){
-		$scope.feedback_response="Posting.."
-		$.ajax({
-            url: GOOGLE_FORMS_URL,
-            data: {	"entry.1986871126" : $scope.video1.substr(VIDEO_PATH.length),
-        			"entry.489660422" : $scope.video2.substr(VIDEO_PATH.length), 
-        			"entry.1932134194" : $scope.score, 
-        			"entry.19555886": $scope.comments},
-            type: "POST",
-            dataType: "xml",
-            statusCode: {
-					0: function (){
-						$scope.feedback_response="Error! Contact support"
-					},
-					200: function (){
-						$scope.feedback_response="Posted. Thanks!"
- 					},
- 					404: function() {
- 		                console.log("-1-1-1-1 WE GOT 404!");
- 		            }
-				}
-        });
+		$scope.feedback_response="Posting..";
+		
+		$http({
+		      url:GOOGLE_FORMS_URL,
+		      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+		      params: {
+		    	  "entry.1986871126" : $scope.video1.substr(VIDEO_PATH.length),
+		          "entry.489660422" : $scope.video2.substr(VIDEO_PATH.length), 
+		          "entry.1932134194" : $scope.score, 
+		          "entry.19555886": $scope.comments
+		          },
+		      method:"POST",
+		            }).error(function(data, status) {
+		            	//Error is expected as it's cross domain
+		            	//But if status is 0 then form was posted fine
+		            	if(status == 0){
+		            		$scope.feedback_response="Posted. Thanks!"
+		            	}else{
+		            		$scope.feedback_response="Error! Contact support"
+		            	}
+		                
+		            });
 	}
 	$scope.readCSV();
 }])//Filter for percentage in css
