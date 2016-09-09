@@ -12,7 +12,9 @@
 			<br/>
 			Min - <input type="text" ng-model="filters.min" ng-init="filters.min=0" /> &nbsp; 
 			Max - <input type="text" ng-model="filters.max" ng-init="filters.max=1" /> &nbsp; 
-			Click on any cell to view videos!
+			Click on any cell to view videos! &nbsp;
+			<select ng-model="selectedDataSet" ng-options="x for x in dataSet" ng-change="readCSV()">
+			</select>
 			<table>
 				<tr ng-repeat="x in data track by $index">
 					<td ng-repeat="y in x track by $index"

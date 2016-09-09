@@ -10,10 +10,17 @@ function ($scope, $http) {
 	$scope.score = 0.0;
 	$scope.videoId1 = 0;
 	$scope.videoId2 = 0;
+	//Add paths to different data set here
+	$scope.dataSet = ['data/formatted_similarity_calc.csv','data/formatted_similarity_calc_6.csv'];
 		
 	$scope.readCSV = function() {
 		// http get request to read CSV file content
-		$http.get('data/formatted_similarity_calc.csv').success($scope.processData);
+		if($scope.selectedDataSet){
+			$http.get($scope.selectedDataSet).success($scope.processData);
+		}else{
+			$http.get($scope.dataSet[0]).success($scope.processData);
+		}
+		
 	};
 
 	$scope.processData = function(allText) {
