@@ -26,9 +26,11 @@ import matplotlib.colors as lib_colors
 from collections import Counter
 import json
 
-if len(sys.argv) != 2:
+if len(sys.argv) < 2:
     print "Usage - "
     print "python similarity_heatmap.py /path/to/formatted/similarity "
+    print "Optional - Filter small cluster. Pass limit for smallest cluster. This will generate an additional json "
+    print "python similarity_heatmap.py /path/to/formatted/similarity 5"
     sys.exit()
 
 
@@ -36,9 +38,14 @@ path_to_sim_mat = sys.argv[1]
 ## one line for each video minus header
 num_videos = sum(1 for line in open(path_to_sim_mat)) - 1
 
+if len(sys.argv) >=3:
+    limit_smallest_cluster = int(sys.argv[2])
+else:
+    limit_smallest_cluster = None
+    
 print path_to_sim_mat
 print num_videos
-
+print "Filter -", limit_smallest_cluster
 # load data from formatted_similarity_calc.csv
 # skip header
 # skip first column so usecols=range(1 , num_videos),
@@ -92,6 +99,8 @@ ax1 = figure1.add_axes([0.07,0.25,0.90,0.70])
 
 # initialize d3-hierarchy json
 clusterJson = {"children":[],"name": "clusters"}
+# initialize FILTERED d3-hierarchy json
+clusterJsonFiltered = {"children":[],"name": "clusters"}
 
 # Single loop for forming piechart, , cluster image
 for k, col in zip(unique_labels, colors):
@@ -100,11 +109,22 @@ for k, col in zip(unique_labels, colors):
     
     ## d3 json
     clusterJsonChild = {"children":[],"name": "cluster"+str(k),"color":lib_colors.rgb2hex(col)}
+    clusterJsonChildFiltered = {"children":[],"name": "cluster"+str(k),"color":lib_colors.rgb2hex(col)}
+    
     for video in video_clusters[k]:
         clusterJsonChild["children"].append({"name": video})
         
+        # check if filter is enabled and clusters qualifies the filter
+        if(limit_smallest_cluster and len(video_clusters[k]) >= limit_smallest_cluster):
+            clusterJsonChildFiltered["children"].append({"name": video})
+            
+        
     clusterJson["children"].append(clusterJsonChild)
     
+    # check if filter is enabled and there are nodes after filtering
+    if(limit_smallest_cluster and len(clusterJsonChildFiltered["children"])>0):
+        clusterJsonFiltered["children"].append(clusterJsonChildFiltered)
+        
     
     ## cluster image
     if k == -1:
@@ -134,3 +154,8 @@ plt.savefig('../data/similarity_cluster.png')
 
 with open('../data/similarity_cluster.json', 'w') as fp:
     json.dump(clusterJson, fp)
+
+if(limit_smallest_cluster):
+    with open('../data/similarity_cluster_filtered_'+str(limit_smallest_cluster)+'.json', 'w') as fp:
+        json.dump(clusterJsonFiltered, fp)
+    
