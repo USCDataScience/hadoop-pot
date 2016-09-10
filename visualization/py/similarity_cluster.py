@@ -15,6 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import matplotlib
+matplotlib.use('Agg')
+
 import numpy as np
 import sys
 from sklearn.cluster import DBSCAN
@@ -22,6 +25,12 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as lib_colors
 from collections import Counter
 import json
+
+if len(sys.argv) != 2:
+    print "Usage - "
+    print "python similarity_heatmap.py /path/to/formatted/similarity "
+    sys.exit()
+
 
 path_to_sim_mat = sys.argv[1]
 ## one line for each video minus header
@@ -120,8 +129,8 @@ ax2 = figure1.add_axes([0.4,0.0,0.20,0.20])
 
 ax2.pie(fracs, startangle=90, colors=colors)
 
-plt.savefig('similarity_cluster.png')
+plt.savefig('../data/similarity_cluster.png')
 
 
-with open('similarity_cluster.json', 'w') as fp:
+with open('../data/similarity_cluster.json', 'w') as fp:
     json.dump(clusterJson, fp)
