@@ -26,6 +26,7 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
 import java.util.List;
 
 import com.google.common.base.Charsets;
@@ -89,10 +90,12 @@ public class FormatOutput {
 		PrintWriter similarity = new PrintWriter(new FileWriter(outFile,true));
 
 		for(String[] resultRow: resultMatrix){
+			StringBuffer sb = new StringBuffer("");
 			for(String resultCell: resultRow){
 				//if resultCell == null print empty string else value
-				similarity.print( (resultCell == null?"":resultCell) +",");
+				sb.append((resultCell == null?"":resultCell) +",");
 			}
+			similarity.print(sb.substring(0, sb.length()-1));
 			similarity.println();
 			
 		}
@@ -109,6 +112,8 @@ public class FormatOutput {
 	 */
 	private static void fillSimLineInResult(String simLine, String[][] resultMatrix, List<String> videoList) {
 
+		DecimalFormat df = new DecimalFormat("0.00");
+
 		String score = "";
 		String vid1 = "";
 		String vid2 = "";
@@ -118,14 +123,20 @@ public class FormatOutput {
 		{
 			// scoped under a brace to limit scope of temp variables
 			String[] pairAndScore = simLine.split("\t");
-			score = pairAndScore[1];
+			
+			score = df.format(Double.parseDouble(pairAndScore[1]) );
 			String[] pair = pairAndScore[0].split(",");
 			vid1 = pair[0];
 			vid2 = pair[1];
 			indexOfvid1 = videoList.indexOf(vid1);
 			indexOfvid2 = videoList.indexOf(vid2);
 		}
-
+		
+		//if this video is not present in input list of video skip it from matrix
+		//This is used when we create output for a subset of videos
+		if(indexOfvid2 == -1 || indexOfvid1 == -1) 
+			return;
+		
 		//Fill only upper matrix
 		if (indexOfvid1 < indexOfvid2) {
 			resultMatrix[indexOfvid1][indexOfvid2]=score;

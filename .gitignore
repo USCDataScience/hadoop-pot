@@ -48,3 +48,5 @@ Temporary Items
 /.settings/
 /data/
 /similarity.txt
+
+*.mp4

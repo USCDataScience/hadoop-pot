@@ -24,6 +24,13 @@ import sys
 
 pl.ioff()
 
+if len(sys.argv) != 3:
+    print "Usage - "
+    print "python similarity_heatmap.py /path/to/formatted/similarity number_of_videos"
+    print "number_of_videos can be less or equal to number of videos in similarity matrix"
+    sys.exit()
+
+
 path_to_sim_mat = sys.argv[1]
 num_videos = int(sys.argv[2])
 print path_to_sim_mat
@@ -46,5 +53,5 @@ pl.imshow(data, cmap=pl.cm.Blues, interpolation="nearest")
 pl.colorbar()
 
 # tpggle to pl.show() for just viewing image
-pl.savefig('similarity_heatmap.png')
-print "saved in similarity_heatmap.png"
+pl.savefig('../data/similarity_heatmap.png')
+print "saved in ../data/similarity_heatmap.png"

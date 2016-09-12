@@ -1,0 +1,36 @@
+table, th, td {
+   border: 1px solid black;
+   padding:3px !important;
+}
+table {
+   border-collapse: collapse;
+   margin:10px;
+}
+html, body{
+    height: 100%;
+}
+.upper-div{
+	overflow-y:scroll;
+	overflow-x:scroll;
+	overflow: -moz-scrollbars-vertical; 	
+}
+.lower-div{
+	
+}
+::-webkit-scrollbar {
+  -webkit-appearance: none;
+  width: 7px;
+}
+::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, .5);
+  -webkit-box-shadow: 0 0 1px rgba(255, 255, 255, .5);
+}
+ .break-words  {
+    word-break:break-all
+}
+
+.well{
+	padding: 5px;
+	margin-bottom: 2px;
+}
