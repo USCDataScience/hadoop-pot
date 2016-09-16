@@ -68,48 +68,11 @@ zip -d target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar META-INF
 
 ```
 
-### Easy Run Script
+# Documentation moving to the wiki 
 
-You run the entire Hadoop pipeline over a folder of videos with the following command. Note that you should pass the full path to the video directory.
-```
-pooled-time-series-hadoop `pwd`/example_videos_dir
-```
+We are moving our documentation to the wiki. Please bear with us and report issues as you find them.
 
-### Running Individual Jobs
-```
-# Run the Optical Time Series Job
-hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar org.pooledtimeseries.OpticalTimeSeries OpticalTimeSeriesInput/ OpticalTimeSeriesOutput/
-
-# Run the Gradient Time Series Job (using the same input as above for convenience)
-hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar org.pooledtimeseries.GradientTimeSeries OpticalTimeSeriesInput/ GradientTimeSeriesOutput/
-
-# Run the meanChiSquaredDistance job
-hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar org.pooledtimeseries.SimilarityCalculation SimilarityInput/ MeanChiOutput/
-
-# Run the similarity job (using the value calculated in the previous job)
-hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar org.pooledtimeseries.SimilarityCalculation SimilarityInput/ SimilarityOutput/ ./MeanChiOutput/meanChiSquaredDistances.txt 
-```
-
-The input used above is in ```./OpticalTimeSeriesInput/videos.txt``` and looks like
-```
-/Path/to/example/videos/badvideo.mp4
-/Path/to/example/videos/goodvideo.mp4
-/Path/to/example/videos/movie2.mp4
-```
-
-The input used for the similarity job above ```./SimilarityInput``` looks like the below. It should contain the pairs of all videos to be evaluated.
-```
-/Path/to/badvideo.mp4,/Path/to/badvideo.mp4
-/Path/to/badvideo.mp4,/Path/to/goodvideo.mp4
-/Path/to/goodvideo.mp4,/Path/to/goodvideo.mp4
-```
-
-Example output from the similarity calculation looks something like the below:
-```
-/Path/to/badvideo.mp4,/Path/to/badvideo.mp4     1.0
-/Path/to/badvideo.mp4,/Path/to/goodvideo.mp4 	0.0326700669930306
-/Path/to/goodvideo.mp4,/Path/to/goodvideo.mp4   1.0
-```
+* [Getting up and running with Hadoop - Individual MR commands](https://github.com/USCDataScience/hadoop-pot/wiki/Individual-MR-job-commands)
 
 # Research Background and Detail
 This is a source code used in the following conference paper [1].
