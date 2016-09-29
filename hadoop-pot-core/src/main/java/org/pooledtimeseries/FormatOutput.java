@@ -115,8 +115,7 @@ public class FormatOutput {
 		DecimalFormat df = new DecimalFormat("0.00");
 
 		String score = "";
-		String vid1 = "";
-		String vid2 = "";
+		
 		int indexOfvid1 = 0;
 		int indexOfvid2 = 0;
 
@@ -126,10 +125,8 @@ public class FormatOutput {
 			
 			score = df.format(Double.parseDouble(pairAndScore[1]) );
 			String[] pair = pairAndScore[0].split(",");
-			vid1 = pair[0];
-			vid2 = pair[1];
-			indexOfvid1 = videoList.indexOf(vid1);
-			indexOfvid2 = videoList.indexOf(vid2);
+			indexOfvid1 = videoList.indexOf(pair[0]);
+			indexOfvid2 = videoList.indexOf(pair[1]);
 		}
 		
 		//if this video is not present in input list of video skip it from matrix
