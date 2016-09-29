@@ -56,8 +56,9 @@ public class FormatOutput {
 			throw new RuntimeException("Insufficient Input");
 		}
 		File outFile = new File(args[0]);//CSV file to write the output formatted_similarity_calc.csv
-		if(outFile.exists())
-			outFile.delete();
+		if (outFile.exists()) {
+			throw new RuntimeException("Output file already esists-" + outFile.getAbsolutePath());
+		}
 		
 		File simFile = new File(args[1]);//Video pairs with similarity score
 		

@@ -17,11 +17,10 @@ public class Deduplicate {
 			System.err.println("args[1] - Video pairs with similarity score- 'vid1,vid2\t0.5' ");
 			throw new RuntimeException("Insufficient Input");
 		}
-		File outFile = new File(args[0]);// CSV file to write the output
-											// deduped_similarity_calc.csv
+		File outFile = new File(args[0]);// CSV file to write the output deduped_similarity_calc.csv
 
 		if (outFile.exists()) {
-			outFile.delete();
+			throw new RuntimeException("Output file already esists-" + outFile.getAbsolutePath());
 		}
 
 		File simFile = new File(args[1]);// Video pairs with similarity score
@@ -75,7 +74,6 @@ public class Deduplicate {
 		br = new BufferedReader(new FileReader(simFile));
 		simLine = null;
 		while ((simLine = br.readLine()) != null) {
-			System.out.println(simLine);
 			String[] pairAndScore = simLine.split("\t");
 			String[] pair = pairAndScore[0].split(",");
 			boolean vid1InDelete = videosToDelete.contains(pair[0]);
