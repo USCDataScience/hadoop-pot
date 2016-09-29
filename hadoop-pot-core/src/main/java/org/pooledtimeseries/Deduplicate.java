@@ -11,12 +11,15 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Deduplicate {
+	private static final double DEFAULT_THRESHOLD = 0.99d;
+
 	public static void main(String[] args) throws IOException {
 		if (args.length < 3) {
 			System.err.println("Improper usage. Execute with below 2 arguments- ");
 			System.err.println("args[0] - path to CSV file to write the deduped similarity calc csv ");
 			System.err.println("args[1] - path to List of video names ");
 			System.err.println("args[2] - Video pairs with similarity score- 'vid1,vid2\t0.5' ");
+			System.err.println("args[3] - similarity threshold. Default 0.99 ");
 			throw new RuntimeException("Insufficient Input");
 		}
 		File outFile = new File(args[0]);// CSV file to write the output deduped_similarity_calc.csv
@@ -28,7 +31,7 @@ public class Deduplicate {
 		}
 
 		File simFile = new File(args[2]);// Video pairs with similarity score
-
+		double threshold = args.length == 4 ? Double.parseDouble(args[3]) : DEFAULT_THRESHOLD;
 		// All videos to discard
 		Set<String> videosToDelete = new HashSet<>();
 		// One video from each similar set will be kept
@@ -37,7 +40,7 @@ public class Deduplicate {
 		BufferedReader br = new BufferedReader(new FileReader(simFile));
 		String simLine = null;
 		while ((simLine = br.readLine()) != null) {
-			storeVideosToDelete(videosToDelete, videosToKeep, simLine);
+			storeVideosToDelete(videosToDelete, videosToKeep, simLine, threshold);
 
 		}
 		br.close();
@@ -75,10 +78,10 @@ public class Deduplicate {
 
 	}
 
-	private static void storeVideosToDelete(Set<String> videosToDelete, Set<String> videosToKeep, String simLine) {
+	private static void storeVideosToDelete(Set<String> videosToDelete, Set<String> videosToKeep, String simLine, double threshold) {
 		String[] pairAndScore = simLine.split("\t");
 		double score = Double.parseDouble(pairAndScore[1]);
-		if (score >= 0.99d) {
+		if (score >= threshold) {
 			String[] pair = pairAndScore[0].split(",");
 			String vid1 = pair[0];
 			String vid2 = pair[1];
