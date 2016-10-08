@@ -19,16 +19,20 @@ MAIN_PTS_DIR=$POOLED_TIME_SERIES_HOME/../..
 HDFS_PTS_DIR=/user/pts/output
 
 TIME_SERIES_INPUT=$HDFS_PTS_DIR/OpticalAndGradientTimeSeriesInput
-SIMILARITY_INPUT=$HDFS_PTS_DIR/MeanChiSquareAndSimilarityInput
+SIMILARITY_INPUT=$HDFS_PTS_DIR/SequenceVideoVectors
 
 PTS_TIME_SERIES_INPUT=$POOLED_TIME_SERIES_HOME/OpticalAndGradientTimeSeriesInput
 PTS_SIMILARITY_INPUT=$POOLED_TIME_SERIES_HOME/MeanChiSquareAndSimilarityInput
 PTS_MEAN_CHI_OUTPUT=$POOLED_TIME_SERIES_HOME/MeanChiSquareOutput
-echo "initialized"
+
+echo "*****************"
+echo "initialized, removing previous input directories"
+hadoop fs -rm -r $TIME_SERIES_INPUT
+hadoop fs -rm -r $SIMILARITY_INPUT
+echo "*****************"
 
 hadoop fs -mkdir $HDFS_PTS_DIR
 hadoop fs -mkdir $TIME_SERIES_INPUT
-hadoop fs -mkdir $SIMILARITY_INPUT
 mkdir $PTS_TIME_SERIES_INPUT
 mkdir $PTS_SIMILARITY_INPUT
 mkdir $PTS_MEAN_CHI_OUTPUT
@@ -44,12 +48,6 @@ echo "Checking- " $PTS_TIME_SERIES_INPUT/original_videos.txt
 ls -lrt $PTS_TIME_SERIES_INPUT/original_videos.txt
 echo "*****************"
 
-python $MAIN_PTS_DIR/src/main/bin/generate_video_pairs.py $PTS_TIME_SERIES_INPUT $PTS_SIMILARITY_INPUT
-
-echo "*****************"
-echo "Finished executing generate_video_pairs.py Checking- " $PTS_SIMILARITY_INPUT/videos.txt
-ls -lrt $PTS_SIMILARITY_INPUT/videos.txt
-echo "*****************"
 
 mkdir $PTS_TIME_SERIES_INPUT/split
 split -l 1000 $PTS_TIME_SERIES_INPUT/original_videos.txt $PTS_TIME_SERIES_INPUT/split/original_videos.txt_
@@ -74,13 +72,13 @@ do
 	hadoop fs -cat $TIME_SERIES_INPUT/original_videos.txt | head
 
 	# Optical and Gradient Time Series Calcs
-	hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar org.pooledtimeseries.OpticalTimeSeries $TIME_SERIES_INPUT $HDFS_PTS_DIR/OTSOutput
+	hadoop jar hadoop-pot-assembly/target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar org.pooledtimeseries.OpticalTimeSeries $TIME_SERIES_INPUT $HDFS_PTS_DIR/OTSOutput
 	
 	echo "*****************"
 	echo "Completed OpticalTimeSeries. Output in - " $HDFS_PTS_DIR/OTSOutput
 	hadoop fs -ls  $HDFS_PTS_DIR/OTSOutput
 	echo "*****************"
-	hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar org.pooledtimeseries.GradientTimeSeries $TIME_SERIES_INPUT $HDFS_PTS_DIR/GTSOutput
+	hadoop jar hadoop-pot-assembly/target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar org.pooledtimeseries.GradientTimeSeries $TIME_SERIES_INPUT $HDFS_PTS_DIR/GTSOutput
 
 	echo "*****************"
 	echo "Completed GradientTimeSeries. Output in - " $HDFS_PTS_DIR/GTSOutput
@@ -114,15 +112,17 @@ echo "Removed batch outputs after copying to : " $2
 echo "*****************"
 
 
-hadoop fs -put $PTS_SIMILARITY_INPUT/videos.txt $SIMILARITY_INPUT
+
+# Converting of.txt and hog.txt into a single sequence file 
+hadoop jar hadoop-pot-assembly/target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar org.pooledtimeseries.seqfile.TextVectorsToSequenceFile $2 $SIMILARITY_INPUT
 echo "*****************"
-echo "video pairs coiped to hdfs"
-hadoop fs -ls $SIMILARITY_INPUT
+echo "Completed sequence file generation"
+hadoop fs -ls $HDFS_PTS_DIR/SequenceVideoVectors
 echo "*****************"
 
 
 # MeanChiSquareDistance Vector Calc
-hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar org.pooledtimeseries.MeanChiSquareDistanceCalculation $SIMILARITY_INPUT $HDFS_PTS_DIR/MeanChiSquaredCalcOutput
+hadoop jar hadoop-pot-assembly/target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar org.pooledtimeseries.MeanChiSquareDistanceCalculation $SIMILARITY_INPUT $HDFS_PTS_DIR/MeanChiSquaredCalcOutput
 hadoop fs -getmerge $HDFS_PTS_DIR/MeanChiSquaredCalcOutput $PTS_MEAN_CHI_OUTPUT/mean_dists.txt
 hadoop fs -put $PTS_MEAN_CHI_OUTPUT/mean_dists.txt $HDFS_PTS_DIR/
 
@@ -137,10 +137,9 @@ echo "*****************"
 
 # Similarity Calc
 hadoop fs -rm -r $HDFS_PTS_DIR/SimilarityCalc
-hadoop jar target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar org.pooledtimeseries.SimilarityCalculation $SIMILARITY_INPUT $HDFS_PTS_DIR/SimilarityCalc/ $HDFS_PTS_DIR/mean_dists.txt
+hadoop jar hadoop-pot-assembly/target/pooled-time-series-1.0-SNAPSHOT-jar-with-dependencies.jar org.pooledtimeseries.SimilarityCalculation $SIMILARITY_INPUT $HDFS_PTS_DIR/SimilarityCalc/ $HDFS_PTS_DIR/mean_dists.txt
 hadoop fs -getmerge $HDFS_PTS_DIR/SimilarityCalc $PTS_SIMILARITY_INPUT/similarity_calc.txt
 
 echo "Output in - " $PTS_SIMILARITY_INPUT/similarity_calc.txt
 
-hadoop fs -rm -r $TIME_SERIES_INPUT
-hadoop fs -rm -r $SIMILARITY_INPUT
+

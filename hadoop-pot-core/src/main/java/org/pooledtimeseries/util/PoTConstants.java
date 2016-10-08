@@ -15,22 +15,11 @@
  * limitations under the License.
  */
 
-package org.pooledtimeseries;
+package org.pooledtimeseries.util;
 
-import java.util.ArrayList;
-
-public class FeatureVector {
-	public ArrayList<ArrayList<Double>> feature;
+public class PoTConstants {
+	public static final String VECTOR_SEPERATOR = "|";
+	public static final String FILE_SEPERATOR = "~";
+	public static final String VECTOR_SEPERATOR_REGEX = "\\|";
 	
-	public FeatureVector() {
-		feature = new ArrayList<ArrayList<Double>>();
-	}
-	
-	public FeatureVector(ArrayList<ArrayList<Double>> f) {
-		feature = f;
-	}
-	
-	public int numDim() {
-		return feature.size();
-	}
 }

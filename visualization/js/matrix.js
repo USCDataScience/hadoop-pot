@@ -141,7 +141,7 @@ rowLabel.push(header[head])
 colLabel.push(header[head]);
 }
 
-    console.log(rowLabel);
+    
 var rowLabels = svg.append("g")
       .selectAll(".rowLabelg")
       .data(rowLabel)
