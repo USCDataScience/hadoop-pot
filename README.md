@@ -11,7 +11,7 @@ If you get any errors running brew install opencv related to numpy, please run:
 
  1. `pip install numpy`
 
-Now move on to OpenCV
+Now move on to OpenCV (More detailed instructions in [wiki/Installing-opencv](https://github.com/USCDataScience/hadoop-pot/wiki/Installing-opencv))
  1. `brew install opencv --with-java`
  
 The above should leave you with a:

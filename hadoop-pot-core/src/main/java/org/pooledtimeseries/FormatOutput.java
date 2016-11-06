@@ -56,8 +56,9 @@ public class FormatOutput {
 			throw new RuntimeException("Insufficient Input");
 		}
 		File outFile = new File(args[0]);//CSV file to write the output formatted_similarity_calc.csv
-		if(outFile.exists())
-			outFile.delete();
+		if (outFile.exists()) {
+			throw new RuntimeException("Output file already esists-" + outFile.getAbsolutePath());
+		}
 		
 		File simFile = new File(args[1]);//Video pairs with similarity score
 		
@@ -115,8 +116,7 @@ public class FormatOutput {
 		DecimalFormat df = new DecimalFormat("0.00");
 
 		String score = "";
-		String vid1 = "";
-		String vid2 = "";
+		
 		int indexOfvid1 = 0;
 		int indexOfvid2 = 0;
 
@@ -126,10 +126,8 @@ public class FormatOutput {
 			
 			score = df.format(Double.parseDouble(pairAndScore[1]) );
 			String[] pair = pairAndScore[0].split(",");
-			vid1 = pair[0];
-			vid2 = pair[1];
-			indexOfvid1 = videoList.indexOf(vid1);
-			indexOfvid2 = videoList.indexOf(vid2);
+			indexOfvid1 = videoList.indexOf(pair[0]);
+			indexOfvid2 = videoList.indexOf(pair[1]);
 		}
 		
 		//if this video is not present in input list of video skip it from matrix
