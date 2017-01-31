@@ -28,7 +28,7 @@ import json
 
 if len(sys.argv) < 2:
     print "Usage - "
-    print "python similarity_heatmap.py /path/to/formatted/similarity "
+    print "python similarity_cluster.py /path/to/formatted/similarity "
     print "Optional - Filter small cluster. Pass limit for smallest cluster. This will generate an additional json "
     print "python similarity_heatmap.py /path/to/formatted/similarity 5"
     sys.exit()
@@ -58,10 +58,12 @@ data = np.genfromtxt(path_to_sim_mat,
 data = np.triu(data).T + np.triu(data)  
 ## Diagonal is also added to itself hence resetting it to 1 
 np.fill_diagonal(data, 1)
-
+# We have similarity matrix, to make it to distance matrix we 
+# subtract similarity score from 1 
+data = 1 - data
 print "Data loaded"
 
-db = DBSCAN(min_samples=1).fit(data)
+db = DBSCAN(eps=0.2).fit(data)
 with open(path_to_sim_mat) as f:
     videos = f.readline().strip().split(",")[1:]
 
