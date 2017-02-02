@@ -33,6 +33,7 @@ import numpy as np
 if len(sys.argv) < 2:
     print "Usage -"
     print "\t python video_duration.py <path/to/video/dir>"
+    sys.exit()
 
 file_path = sys.argv[1]
 
