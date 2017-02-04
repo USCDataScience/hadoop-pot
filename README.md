@@ -94,3 +94,8 @@ http://arxiv.org/pdf/1412.6505v2.pdf
  month={June},
  address={Boston, MA},
 }
+
+# Evaluation
+![](https://raw.githubusercontent.com/USCDataScience/hadoop-pot/master/Similarity%20Evaluation.png)
+
+HMDB Dataset - http://serre-lab.clps.brown.edu/resource/hmdb-a-large-human-motion-database/
