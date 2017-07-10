@@ -82,9 +82,20 @@ For more detailed information on the approach, please check the paper.
 
 If you take advantage of this code for any academic purpose, please do cite:
 
-[1] M. S. Ryoo, B. Rothrock, and L. Matthies, "Pooled Motion Features for First-Person Videos", IEEE Conference on Computer Vision and Pattern Recognition (CVPR), June 2015.
+[1] Mattmann, Chris A., and Madhav Sharan. "Scalable Hadoop-Based Pooled Time Series of Big Video Data from the Deep Web." Proceedings of the 2017 ACM on International Conference on Multimedia Retrieval. ACM, 2017.
+[2] M. S. Ryoo, B. Rothrock, and L. Matthies, "Pooled Motion Features for First-Person Videos", IEEE Conference on Computer Vision and Pattern Recognition (CVPR), June 2015.
 
+https://arxiv.org/abs/1610.06669
 http://arxiv.org/pdf/1412.6505v2.pdf
+
+@inproceedings{mattmann2017scalable,
+  title={Scalable Hadoop-Based Pooled Time Series of Big Video Data from the Deep Web},
+  author={Mattmann, Chris A and Sharan, Madhav},
+  booktitle={Proceedings of the 2017 ACM on International Conference on Multimedia Retrieval},
+  pages={117--120},
+  year={2017},
+  organization={ACM}
+}
 
 @inproceedings{ryoo2015pot,
  title={Pooled Motion Features for First-Person Videos},
@@ -99,3 +110,4 @@ http://arxiv.org/pdf/1412.6505v2.pdf
 ![](https://raw.githubusercontent.com/USCDataScience/hadoop-pot/master/Similarity%20Evaluation.png)
 
 HMDB Dataset - http://serre-lab.clps.brown.edu/resource/hmdb-a-large-human-motion-database/
+
