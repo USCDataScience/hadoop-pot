@@ -82,6 +82,7 @@ For more detailed information on the approach, please check the paper.
 
 If you take advantage of this code for any academic purpose, please do cite:
 
+```
 [1] Mattmann, Chris A., and Madhav Sharan. "Scalable Hadoop-Based Pooled Time Series of Big Video Data from the Deep Web." Proceedings of the 2017 ACM on International Conference on Multimedia Retrieval. ACM, 2017.
 [2] M. S. Ryoo, B. Rothrock, and L. Matthies, "Pooled Motion Features for First-Person Videos", IEEE Conference on Computer Vision and Pattern Recognition (CVPR), June 2015.
 
@@ -105,6 +106,7 @@ http://arxiv.org/pdf/1412.6505v2.pdf
  month={June},
  address={Boston, MA},
 }
+```
 
 # Evaluation
 ![](https://raw.githubusercontent.com/USCDataScience/hadoop-pot/master/Similarity%20Evaluation.png)
